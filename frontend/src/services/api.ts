@@ -17,6 +17,7 @@ class ApiService {
       ...options,
     };
 
+    console.log('url: in fronend',url)
     const response = await fetch(url, config);
     const data = await response.json();
 
