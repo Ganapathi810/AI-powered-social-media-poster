@@ -8,7 +8,7 @@ class ApiService {
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    const url =  API_BASE_URL ? `${API_BASE_URL}/api/${endpoint}` : `http://localhost:5000/api'${endpoint}`;
+    const url =  API_BASE_URL ? `${API_BASE_URL}/api${endpoint}` : `http://localhost:5000/api'${endpoint}`;
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
