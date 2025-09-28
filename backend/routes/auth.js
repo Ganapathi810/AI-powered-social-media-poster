@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Register
 router.post('/register', async (req, res) => {
+  console.log("inside register")
   try {
     const { email, password, firstName, lastName } = req.body;
 
@@ -50,6 +51,7 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
+  console.log("inside login")
   try {
     console.log("inside login")
     const { email, password } = req.body;
