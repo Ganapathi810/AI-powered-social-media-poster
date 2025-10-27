@@ -207,7 +207,7 @@ export const Calendar: React.FC = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7 ">
           {renderCalendarDays()}
         </div>
       </div>
