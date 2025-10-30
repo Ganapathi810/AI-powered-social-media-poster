@@ -1,3 +1,5 @@
+const User = require('../models/User');
+
 const router = require('express').Router();
 
 router.get("/twitter/:tweetId", async (req, res) => {
@@ -85,6 +87,7 @@ router.get("/linkedin/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
 
+
     const user = await User.findById(req.userId);
 
     if(!user) {
@@ -110,8 +113,14 @@ router.get("/linkedin/:postId", async (req, res) => {
       }
     );
 
+    console.log('------------------------------------------------------------')
+    console.log("LinkedIn API response:", response.data);
+    console.log('------------------------------------------------------------')
+
     const data = response.data;
     const stats = data["statistics~"];
+
+    console.log(stats, '================stats');
 
     const analytics = {
       postId,
