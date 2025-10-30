@@ -118,7 +118,7 @@ router.get("/linkedin/:postId", async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "LinkedIn-Version": "202404",
+          "LinkedIn-Version": "202510",
         },
       }
     );
@@ -131,7 +131,7 @@ router.get("/linkedin/:postId", async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "LinkedIn-Version": "202404",
+          "LinkedIn-Version": "202510",
         },
         params: {
           q: "entity",
