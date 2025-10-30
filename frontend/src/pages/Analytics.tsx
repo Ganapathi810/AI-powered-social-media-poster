@@ -229,10 +229,6 @@ export const Analytics: React.FC = () => {
                       <MessageCircle className="h-4 w-4" />
                       <span>{post.analytics.comments}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{post.comments}</span>
-                    </div>
                   </div>
                 </div>
               ))}

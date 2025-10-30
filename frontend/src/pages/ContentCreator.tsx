@@ -30,7 +30,6 @@ export const ContentCreator: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [aiContent, setAIContent] = useState(''); // single source of truth for generated content
-  const [copySuccess, setCopySuccess] = useState(false);
   const [posting,setPosting] = useState<string | null>(null)
   const [copyChatMessage,setCopyChatMessage] = useState<number | null>(null)
 
@@ -121,7 +120,7 @@ export const ContentCreator: React.FC = () => {
 
       const result = await apiService.publishPost(aiContent,platform);
       console.log("publish result",result)
-      
+
       if(result) {
         toast.success(`Published the post successfully on ${platform}`);
       }

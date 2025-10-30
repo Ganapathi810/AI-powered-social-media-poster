@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
-  Calendar, 
   PenTool, 
   BarChart3, 
-  Settings, 
   LogOut,
   Menu,
   X,
