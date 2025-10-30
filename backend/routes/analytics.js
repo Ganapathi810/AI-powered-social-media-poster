@@ -113,36 +113,45 @@ router.get("/linkedin/:postId", async (req, res) => {
       return res.status(400).json({ success: false, message: 'LinkedIn account not connected' });
     }
 
-    const response = await axios.get(
+    const postResponse = await axios.get(
       `https://api.linkedin.com/rest/posts/${postId}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "LinkedIn-Version": "202404",
         },
-        params: {
-          projection: "(createdAt,statistics~(viewsCount,likesCount,commentsCount,sharesCount,clickCount))",
-        },
       }
     );
 
-    console.log('------------------------------------------------------------')
-    console.log("LinkedIn API response:", response.data);
-    console.log('------------------------------------------------------------')
+    console.log("Post Response:", postResponse.data);
 
-    const data = response.data;
-    const stats = data["statistics~"];
+    // 2️⃣ Fetch analytics separately
+    const statsResponse = await axios.get(
+      `https://api.linkedin.com/rest/statistics`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "LinkedIn-Version": "202404",
+        },
+        params: {
+          q: "entity",
+          entity: postId, // e.g., urn:li:share:123456789
+        },
+      }
+    );
+    console.log("Stats Response:", statsResponse.data);
 
-    console.log(stats, '================stats');
+    const post = postResponse.data;
+    const stats = statsResponse.data.elements?.[0]?.totalShareStatistics || {};
 
     const analytics = {
       postId,
-      impressions: stats.viewsCount,
-      likes: stats.likesCount,
-      comments: stats.commentsCount,
-      shares: stats.sharesCount,
-      clicks: stats.clickCount,
-      createdAt: data.createdAt,
+      impressions: stats.impressionCount || 0,
+      likes: stats.likeCount || 0,
+      comments: stats.commentCount || 0,
+      shares: stats.shareCount || 0,
+      clicks: stats.clickCount || 0,
+      createdAt: post.createdAt || null,
     };
 
     res.json({ success: true, analytics });
