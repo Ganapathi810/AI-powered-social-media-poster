@@ -1,3 +1,4 @@
+const axios = require('axios');
 const User = require('../models/User');
 
 const router = require('express').Router();
@@ -6,11 +7,23 @@ router.get("/twitter/:tweetId", async (req, res) => {
   try {
     const { tweetId } = req.params;
 
+    const user = await User.findById(req.userId);
+
+    if(!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    const accessToken = user.socialAccounts.twitter.accessToken;   
+
+    if (!accessToken) {
+      return res.status(400).json({ success: false, message: 'LinkedIn account not connected' });
+    }
+
     const response = await axios.get(
       `https://api.x.com/2/tweets/${tweetId}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         params: {
           "tweet.fields": "public_metrics,created_at",
