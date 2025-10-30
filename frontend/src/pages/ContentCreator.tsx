@@ -103,8 +103,6 @@ export const ContentCreator: React.FC = () => {
   const copyToClipboard = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
       toast.error('Failed to copy to clipboard');
