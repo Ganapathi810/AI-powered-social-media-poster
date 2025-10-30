@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
-  TrendingUp, 
-  BarChart3,
-  Clock,
   CheckCircle,
   Eye,
   ExternalLink,
+  X,
 } from 'lucide-react';
-import { FaInstagram, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { FaLinkedin, FaLinkedinIn, FaTwitter, FaXTwitter } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { toast } from 'react-toastify';
 
 interface PostStats {
   total: number;
-  scheduled: number;
-  published: number;
-  draft: number;
+  totalPublishedOnLinkedin: number;
+  totalPublishedOnTwitter: number;
 }
 
 interface SocialAccount {
-  platform: 'twitter' | 'linkedin' | 'instagram';
+  platform: 'twitter' | 'linkedin'
   username: string;
   connected: boolean;
   followers: number;
@@ -29,15 +27,13 @@ interface SocialAccount {
 export const Dashboard: React.FC = () => {
   const [postStats,setPostStats] = useState<PostStats>({
     total: 0,
-    scheduled: 0,
-    published: 0,
-    draft: 0
+    totalPublishedOnTwitter: 0,
+    totalPublishedOnLinkedin: 0,
   });
 
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([
     { platform: 'twitter', username: '', connected: false, followers: 0 },
     { platform: 'linkedin', username: '', connected: false, followers: 0 },
-    { platform: 'instagram', username: '', connected: false, followers: 0 },
   ]);
 
   const [authUrls, setAuthUrls] = useState<{[key: string]: string}>({});
@@ -54,20 +50,22 @@ export const Dashboard: React.FC = () => {
     const getPostsFromBackend = async () => {
       try {
         const posts = await apiService.getPosts()
-        setPostStats((prev) => ({
-          ...prev,
+
+        const publishedOnTwitter = posts.filter((post: any) => post.platform === "twitter")
+
+        setPostStats({
           total: posts.length,
-          published: posts.length
-        }
-        ))
+          totalPublishedOnTwitter: publishedOnTwitter.length,
+          totalPublishedOnLinkedin: posts.length - publishedOnTwitter.length
+        })
       } catch (error) {
         console.error("Failed to fetch Post stats: ",error)
-        alert('Failed to fetch post stats')
+        toast.error('Error loading post statistics. Please try again later.');
       }
     }
 
     getPostsFromBackend()
-    },[])
+  },[])
 
   const loadSocialAccounts = async () => {
     try {
@@ -83,12 +81,6 @@ export const Dashboard: React.FC = () => {
           platform: 'linkedin', 
           username: accounts.linkedin?.username || '', 
           connected: accounts.linkedin?.connected || false, 
-          followers: 0 
-        },
-        { 
-          platform: 'instagram', 
-          username: accounts.instagram?.username || '', 
-          connected: accounts.instagram?.connected || false, 
           followers: 0 
         },
       ]);
@@ -110,19 +102,17 @@ export const Dashboard: React.FC = () => {
       setAuthUrls({
         twitter: 'http://localhost:5000/api/social/auth/twitter',
         linkedin: 'http://localhost:5000/api/social/auth/linkedin',
-        instagram: 'http://localhost:5000/api/social/auth/instagram'
       });
     }
   };
 
   const handleConnectAccount = async (platform: string) => {
     try {
-      console.log("Connecting to platform:", platform);
       setConnecting(platform);
   
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please log in first");
+        toast.error("Please log in first");
         setConnecting(null);
         return;
       }
@@ -132,7 +122,7 @@ export const Dashboard: React.FC = () => {
   
       const authUrl = authUrls[platform];
       if (!authUrl) {
-        alert("OAuth URL not available. Please try again later.");
+        toast.error("OAuth URL not available. Please try again later.");
         setConnecting(null);
         return;
       }
@@ -141,16 +131,26 @@ export const Dashboard: React.FC = () => {
       const popup = window.open(urlWithUserId, "_blank", "width=600,height=600");
   
       if (!popup) {
-        alert("Popup blocked. Please allow popups for this site.");
+        toast.error("Popup blocked. Please allow popups for this site.");
         setConnecting(null);
         return;
       }
+
+      const popupCheckInterval = setInterval(() => {
+        if (popup.closed) {
+          console.log(`${platform} OAuth popup was closed by user`);
+          setConnecting(null);
+          clearInterval(popupCheckInterval);
+          window.removeEventListener("message", handler);
+        }
+      }, 500);
   
       // Listen for OAuth success
       const handler = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return; // security check
         if (event.data.type === "OAUTH_SUCCESS" && event.data.platform === platform) {
           console.log(`${platform} connected successfully`);
+          clearInterval(popupCheckInterval);
           loadSocialAccounts(); // refresh
           setConnecting(null);
           window.removeEventListener("message", handler);
@@ -158,9 +158,14 @@ export const Dashboard: React.FC = () => {
       };
   
       window.addEventListener("message", handler);
+
+      return () => {
+        clearInterval(popupCheckInterval);
+        window.removeEventListener("message", handler);
+      };
     } catch (error) {
       console.error("Error connecting account:", error);
-      alert("Error connecting account. Please try again.");
+      toast.error("Error connecting account. Please try again.");
       setConnecting(null);
     }
   };
@@ -171,7 +176,6 @@ export const Dashboard: React.FC = () => {
     switch (platform) {
       case 'twitter': return <FaXTwitter className="h-5 w-5" />;
       case 'linkedin': return <FaLinkedin className="h-5 w-5" />;
-      case 'instagram': return <FaInstagram className="h-5 w-5" />;
       default: return null;
     }
   };
@@ -180,7 +184,6 @@ export const Dashboard: React.FC = () => {
     switch (platform) {
       case 'twitter': return 'text-blue-500 bg-blue-50';
       case 'linkedin': return 'text-blue-700 bg-blue-50';
-      case 'instagram': return 'text-pink-500 bg-pink-50';
       default: return 'text-gray-500 bg-gray-50';
     }
   };
@@ -188,7 +191,6 @@ export const Dashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published': return 'text-green-700 bg-green-50';
-      case 'scheduled': return 'text-blue-700 bg-blue-50';
       case 'draft': return 'text-gray-700 bg-gray-50';
       default: return 'text-gray-700 bg-gray-50';
     }
@@ -197,7 +199,6 @@ export const Dashboard: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'published': return <CheckCircle className="h-4 w-4" />;
-      case 'scheduled': return <Clock className="h-4 w-4" />;
       case 'draft': return <Eye className="h-4 w-4" />;
       default: return null;
     }
@@ -223,51 +224,37 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-indigo-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Posts</p>
-              <p className="text-2xl font-bold text-gray-900">{postStats.total}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Clock className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Scheduled</p>
-              <p className="text-2xl font-bold text-gray-900">{postStats.scheduled}</p>
-            </div>
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Published</p>
-              <p className="text-2xl font-bold text-gray-900">{postStats.published}</p>
+              <p className="text-sm font-medium text-gray-500">Total posts published</p>
+              <p className="text-2xl font-bold text-gray-900">{postStats.total}</p>
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="p-2 bg-green-100 rounded-lg">
+              <X className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Engagement</p>
-              <p className="text-2xl font-bold text-gray-900">0%</p>
+              <p className="text-sm font-medium text-gray-500">Total published on X (formerly Twitter)</p>
+              <p className="text-2xl font-bold text-gray-900">{postStats.totalPublishedOnTwitter}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <FaLinkedinIn className="h-6 w-6 text-green-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Total publised on LinkedIN</p>
+              <p className="text-2xl font-bold text-gray-900">{postStats.totalPublishedOnLinkedin}</p>
             </div>
           </div>
         </div>
@@ -301,7 +288,7 @@ export const Dashboard: React.FC = () => {
                             loadSocialAccounts();
                           } catch(error) {
                             console.error("Failed to disconnect:",error)
-                            alert('Error disconnecting account. Please try again.');
+                            toast.error("Error disconnecting account. Please try again.");
                           } finally {
                             setDisconnecting(null)
                           }

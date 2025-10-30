@@ -2,13 +2,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './pages/Dashboard';
-import { Calendar } from './pages/Calender';
 import { ContentCreator } from './pages/ContentCreator';
 import { Analytics } from './pages/Analytics';
-import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import OAuthSuccess from './pages/OAuthSuccess';
+import { ToastContainer, toast } from 'react-toastify';
 
 
 function AppContent() {
@@ -23,32 +22,43 @@ function AppContent() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {user && <Navbar />}
-        <Routes>
-          {user ? (
-            <>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/oauth-success" element={<OAuthSuccess />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/create" element={<ContentCreator />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/login" element={<Navigate to="/" />} />
-              <Route path="/signup" element={<Navigate to="/" />} />
+    <>
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+      />
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          {user && <Navbar />}
+          <Routes>
+            {user ? (
+              <>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/oauth-success" element={<OAuthSuccess />} />
+                <Route path="/create" element={<ContentCreator />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/login" element={<Navigate to="/" />} />
+                <Route path="/signup" element={<Navigate to="/" />} />
 
-            </>
-          ) : (
-            <>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="*" element={<Navigate to="/login" />} />
-            </>
-          )}
-        </Routes>
-      </div>
-    </Router>
+              </>
+            ) : (
+              <>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="*" element={<Navigate to="/login" />} />
+              </>
+            )}
+          </Routes>
+        </div>
+      </Router>
+    </>
   );
 }
 

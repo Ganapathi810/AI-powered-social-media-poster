@@ -140,7 +140,7 @@ Please respond as a helpful social media assistant. Your role is to:
 1. Have natural conversations about their business and social media needs
 2. When appropriate, suggest creating specific social media content
 3. Ask follow-up questions to understand their content needs better
-4. Offer to generate posts, tweets, Instagram captions, LinkedIn posts, etc.
+4. Offer to generate posts, tweets, LinkedIn posts, etc.
 5. Be conversational and helpful, not robotic
 
 If the user mentions wanting to create content, posting on social media, or if you think they would benefit from specific content suggestions, mention that you can generate social media content for them.`;
@@ -152,7 +152,6 @@ function buildContentGenerationPrompt(user, conversation, prompt, contentType, p
   const platformGuidelines = {
     twitter: 'Twitter: Keep it under 280 characters, use relevant hashtags, make it engaging',
     linkedin: 'LinkedIn: Professional tone, can be longer, focus on business value and insights',
-    instagram: 'Instagram: Visual-focused, use emojis, include relevant hashtags, engaging captions'
   };
 
   const guidelines = platforms.map(p => platformGuidelines[p]).join('\n');

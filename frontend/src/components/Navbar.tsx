@@ -21,10 +21,8 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
-    { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: PenTool, label: 'Create', path: '/create' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
   const handleSignOut = async () => {

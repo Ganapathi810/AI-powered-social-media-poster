@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { TwitterApi } = require('twitter-api-v2');
 const { refreshTwitterToken } = require('../config/twitter');
 const { default: axios } = require('axios');
+const Post = require('../models/Post');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.post('/connect/:platform', async (req, res) => {
     const { platform } = req.params;
     const { accessToken, username } = req.body;
 
-    if (!['twitter', 'linkedin', 'instagram'].includes(platform)) {
+    if (!['twitter', 'linkedin'].includes(platform)) {
       return res.status(400).json({ message: 'Invalid platform' });
     }
 
@@ -38,7 +39,7 @@ router.post('/disconnect/:platform', async (req, res) => {
   try {
     const { platform } = req.params;
 
-    if (!['twitter', 'linkedin', 'instagram'].includes(platform)) {
+    if (!['twitter', 'linkedin'].includes(platform)) {
       return res.status(400).json({ message: 'Invalid platform' });
     }
 
@@ -94,6 +95,24 @@ router.post('/twitter/publish', async (req, res) => {
 
     const tweet = await client.v2.tweet(content);
 
+    await Post.create({
+      userId: req.userId,
+      content,
+      platform: 'twitter',
+      postId: tweet.data.id,
+      publishedAt: new Date(),
+      analytics: {
+        impressions: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        clicks: 0,
+        engagementRate: 0,
+      },
+    });
+
+    
+
     res.json({ message: "Tweet posted successfully", tweet });
   } catch (err) {
     console.error("Twitter post error:", err?.data || err);
@@ -104,6 +123,7 @@ router.post('/twitter/publish', async (req, res) => {
 
 router.post("/linkedin/publish", async (req, res) => {
   try {
+    console.log("LinkedIn publish endpoint hit")
     const { content } = req.body; 
     if (!content) return res.status(400).json({ message: "Linkedin post content required" });
 
@@ -142,6 +162,8 @@ router.post("/linkedin/publish", async (req, res) => {
       }
     };
 
+    console.log("before api call")
+
     // Post to LinkedIn
     const postRes = await axios.post(
       'https://api.linkedin.com/v2/ugcPosts',
@@ -154,7 +176,18 @@ router.post("/linkedin/publish", async (req, res) => {
         }
       }
     );
+    console.log('After api call')
 
+    console.log('LinkedIn post response:', postRes);
+    console.log("before saving to db")
+    await Post.create({
+      userId: req.userId,
+      content,
+      platform: 'linkedin',
+      postId: postRes.data.id,
+      publishedAt: new Date(),
+      });
+    console.log('afer saving to db')
     res.json({ message: 'Content posted to LinkedIn', postId: postRes.data.id });
   } catch (error) {
     console.error('LinkedIn post error:', error.response?.data || error.message);
@@ -169,7 +202,6 @@ router.get('/auth-urls', (req, res) => {
   const authUrls = {
     twitter: `${baseUrl}/api/social/auth/twitter`,
     linkedin: `${baseUrl}/api/social/auth/linkedin`,
-    instagram: `${baseUrl}/api/social/auth/instagram`
   };
 
   res.json(authUrls);

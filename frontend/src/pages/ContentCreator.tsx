@@ -5,7 +5,10 @@ import {
   Bot, 
   User, 
   Sparkles, 
+  Copy,
+  Check
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface Message {
   id: number;
@@ -29,8 +32,9 @@ export const ContentCreator: React.FC = () => {
   const [aiContent, setAIContent] = useState(''); // single source of truth for generated content
   const [copySuccess, setCopySuccess] = useState(false);
   const [posting,setPosting] = useState<string | null>(null)
+  const [copyChatMessage,setCopyChatMessage] = useState<number | null>(null)
 
-  const platforms = ['twitter', 'linkedin', 'instagram'];
+  const platforms = ['twitter', 'linkedin'];
 
   // Send chat message
   
@@ -104,7 +108,7 @@ export const ContentCreator: React.FC = () => {
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      alert('Failed to copy to clipboard');
+      toast.error('Failed to copy to clipboard');
     }
   };
 
@@ -114,15 +118,17 @@ export const ContentCreator: React.FC = () => {
 
     try {
       setPosting(platform)
-      const result = await apiService.publishPost(aiContent,platform);
 
+      const result = await apiService.publishPost(aiContent,platform);
+      console.log("publish result",result)
+      
       if(result) {
-        alert(`Published the post successfully on ${platform}`)
+        toast.success(`Published the post successfully on ${platform}`);
       }
       
     } catch (error) {
       console.error(`Error posting to ${platform}:`, error);
-      alert(`Error posting to ${platform}.`);
+      toast.error(`Error posting to ${platform}. Please try again.`);
     } finally {
       setPosting(null)
     }
@@ -145,7 +151,7 @@ export const ContentCreator: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="h-80 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`flex max-w-xs lg:max-w-md ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -154,11 +160,30 @@ export const ContentCreator: React.FC = () => {
                       {message.type === 'user' ? <User className="h-4 w-4 text-indigo-600" /> : <Bot className="h-4 w-4 text-gray-600" />}
                     </div>
                   </div>
-                  <div className={`px-4 py-2 rounded-lg ${message.type === 'user' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                    <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-indigo-200' : 'text-gray-500'}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                  <div className='flex flex-col'>
+                    <div className={`px-4 py-2 rounded-lg ${message.type === 'user' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                      <p className="text-sm">{message.content}</p>
+                      <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-indigo-200' : 'text-gray-500'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <div className='flex justify-end mt-1'>
+                        {copyChatMessage !== message.id ? (
+                          <Copy 
+                            className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer mt-1"
+                            onClick={() => {
+                              console.log("hi thre")
+                              setCopyChatMessage(message.id)
+                              copyToClipboard(message.content)
+                              setTimeout(() => setCopyChatMessage(null) ,1000)
+                            }}
+                          />
+                          ) : (
+                          <Check 
+                            className="h-4 w-4 text-green-400 hover:text-green-600 cursor-pointer mt-1"
+                          />
+                        )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -189,7 +214,7 @@ export const ContentCreator: React.FC = () => {
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder="Tell me about your business, audience, or content needs..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               disabled={loading}
@@ -209,13 +234,13 @@ export const ContentCreator: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Generated Content</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Post Content</h2>
             </div>
             <button
-              onClick={() => generateAIContent('Generate sample content')}
+              onClick={() => setAIContent('')}
               className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors duration-200"
             >
-              Refresh
+              Clear
             </button>
           </div>
 
@@ -223,8 +248,8 @@ export const ContentCreator: React.FC = () => {
             value={aiContent}
             onChange={(e) => setAIContent(e.target.value)}
             rows={8}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none mb-4"
-            placeholder="Your AI-generated content will appear here..."
+            className="w-full h-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none mb-4"
+            placeholder="copy the content from chat or write on your own..."
           />
 
           <div className="flex space-x-2">
@@ -234,15 +259,9 @@ export const ContentCreator: React.FC = () => {
                 onClick={() => publishContent(platform)}
                 className="bg-green-600 text-white px-3 py-1 rounded-lg capitalize hover:bg-green-700"
               >
-                {posting ? "Posting..." : `Post to ${platform}`}
+                {posting === platform ? "Posting..." : `Post to ${platform}`}
               </button>
             ))}
-            <button
-              onClick={() => copyToClipboard(aiContent)}
-              className={`px-3 py-1 rounded-lg border ${copySuccess ? 'border-green-500 text-green-600' : 'border-gray-300 text-gray-700'}`}
-            >
-              {copySuccess ? 'Copied!' : 'Copy'}
-            </button>
           </div>
         </div>
       </div>

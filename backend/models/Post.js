@@ -7,49 +7,30 @@ const postSchema = new mongoose.Schema({
     required: true,
   },
   content: {
-    text: String,
-    caption: String,
-    mediaUrl: String,
-    mediaType: {
-      type: String,
-      enum: ['text', 'image', 'video'],
-      default: 'text',
-    },
-  },
-  platforms: [{
     type: String,
-    enum: ['twitter', 'linkedin', 'instagram'],
-  }],
-  scheduledFor: {
+    required: true,
+  },
+  platform: { 
+    type: String, 
+    enum: ['twitter', 'linkedin'], 
+    required: true 
+  },
+  analytics: {
+    impressions: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 },
+    comments: { type: Number, default: 0 },
+    shares: { type: Number, default: 0 },
+    clicks: { type: Number, default: 0 }, 
+    engagementRate: { type: Number, default: 0 }, 
+  },
+  publishedAt: {
     type: Date,
     required: true,
   },
-  status: {
+  postId: {
     type: String,
-    enum: ['draft', 'scheduled', 'published', 'failed'],
-    default: 'draft',
-  },
-  postType: {
-    type: String,
-    enum: ['dynamic', 'static'],
-    default: 'dynamic',
-  },
-  aiGenerated: {
-    type: Boolean,
-    default: false,
-  },
-  engagement: {
-    likes: { type: Number, default: 0 },
-    shares: { type: Number, default: 0 },
-    comments: { type: Number, default: 0 },
-    reach: { type: Number, default: 0 },
-  },
-  publishedAt: Date,
-  publishedIds: {
-    twitter: String,
-    linkedin: String,
-    instagram: String,
-  },
+    required: true
+  }
 }, {
   timestamps: true,
 });

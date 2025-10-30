@@ -90,27 +90,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Get posts by date range
-router.get('/calendar', async (req, res) => {
-  try {
-    const { startDate, endDate } = req.query;
-    
-    const posts = await Post.find({
-      userId: req.userId,
-      scheduledFor: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
-    }).sort({ scheduledFor: 1 });
-
-    res.json(posts);
-  } catch (error) {
-    console.error('Get calendar posts error:', error);
-    res.status(500).json({ message: 'Error fetching calendar posts' });
-  }
-});
-
-// Get analytics data
 router.get('/analytics', async (req, res) => {
   try {
     const posts = await Post.find({ userId: req.userId });
@@ -126,7 +105,6 @@ router.get('/analytics', async (req, res) => {
       platformBreakdown: {
         twitter: posts.filter(p => p.platforms.includes('twitter')).length,
         linkedin: posts.filter(p => p.platforms.includes('linkedin')).length,
-        instagram: posts.filter(p => p.platforms.includes('instagram')).length,
       },
     };
 

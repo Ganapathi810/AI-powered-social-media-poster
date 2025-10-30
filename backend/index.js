@@ -33,6 +33,7 @@ app.use(authMiddleware)
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/social', require('./routes/social'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 
 const PORT = process.env.PORT || 5000;
