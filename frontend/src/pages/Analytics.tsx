@@ -1,16 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { 
   TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Heart, 
   MessageCircle, 
   Share,
   Eye,
   ThumbsUpIcon,
   EyeIcon,
 } from 'lucide-react';
-import { FaComment, FaComments, FaLinkedinIn, FaTwitter } from 'react-icons/fa6';
+import { FaLinkedinIn, FaTwitter } from 'react-icons/fa6';
 import { apiService } from '../services/api';
 import { toast } from 'react-toastify';
 

@@ -7,7 +7,7 @@ import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import OAuthSuccess from './pages/OAuthSuccess';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 
 function AppContent() {
