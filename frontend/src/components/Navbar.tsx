@@ -34,7 +34,7 @@ export const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-50">
+    <nav className="bg-indigo-200 backdrop-blur-md border-b border-indigo-300 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
@@ -59,7 +59,7 @@ export const Navbar: React.FC = () => {
                   to={item.path}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                     isActive(item.path)
-                      ? 'bg-indigo-100 text-indigo-700'
+                      ? 'bg-indigo-600 text-indigo-100'
                       : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
                   }`}
                 >
@@ -91,8 +91,8 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-indigo-100">
+        <div className="absolute left-0 top-14 w-full  md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-indigo-300 border-t border-indigo-100">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (

@@ -140,7 +140,7 @@ export const ContentCreator: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-16rem)]">
         {/* Chat Interface */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 flex flex-col">
           <div className="p-4 border-b border-gray-100 flex items-center space-x-2">
             <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
               <Bot className="h-5 w-5 text-white" />
@@ -221,13 +221,13 @@ export const ContentCreator: React.FC = () => {
               disabled={loading || !inputMessage.trim()}
               className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <Send className="h-5 w-5" />
+              <Send className="h-5 w-5 rotate-45" />
             </button>
           </div>
         </div>
 
         {/* Generated Content Panel */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col">
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-4 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <Sparkles className="h-5 w-5 text-purple-600" />

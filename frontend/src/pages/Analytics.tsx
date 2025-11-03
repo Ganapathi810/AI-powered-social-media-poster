@@ -29,10 +29,12 @@ export const Analytics: React.FC = () => {
   const [selected,setSelected] = useState('twitter')
   const [postsOnTwitter,setPostsOnTwitter] = useState<Post[]>([])
   const [postsOnLinkedIn,setPostsOnLinkedIn] = useState<Post[]>([])
+  const [loading,setLoading] = useState(false)
   
   useEffect(() => {
       const getPostsFromBackend = async () => {
         try {
+          setLoading(true)
           const posts = await apiService.getPosts()
           console.log(posts)
           const publishedOnTwitter = posts.filter((post: any) => post.platform === "twitter")
@@ -43,6 +45,8 @@ export const Analytics: React.FC = () => {
         } catch (error) {
           console.error("Failed to fetch Post stats: ",error)
           toast.error('Error loading post statistics. Please try again later.');
+        } finally {
+          setLoading(false)
         }
       }
   
@@ -159,26 +163,28 @@ export const Analytics: React.FC = () => {
         <p className="mt-2 text-gray-600">Track your social media performance and engagement</p>
       </div>
 
-      <div className='flex gap-1'>
+      <div className='relative flex gap-1'>
         <button
-          className={`px-4 py-2 rounded-lg font-medium ${selected === 'twitter' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-lg font-medium ${selected === 'twitter' ? 'text-indigo-600' : 'text-gray-700 hover:text-gray-500'}`}
           onClick={() => setSelected('twitter')}
         >X (Twitter)
         </button>
         <button
-          className={`px-4 py-2 rounded-lg font-medium ${selected === 'linkedin' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-lg font-medium ${selected === 'linkedin' ? 'text-indigo-600' : 'text-gray-700 hover:text-gray-500'}`}
           onClick={() => setSelected('linkedin')}
         >LinkedIn
         </button>
 
+        <div className={`absolute ${selected === 'twitter' ? 'left-3' : 'left-28'} -bottom-2 w-[80px] bg-indigo-500 h-[2.5px] transition-all duration-200 ease-in-out`} />
+
       </div>
 
       {/* Overview Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-7">
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <div key={metric.name} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div key={metric.name} className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
                 <div className="p-2 bg-indigo-100 rounded-lg">
                   <Icon className="h-6 w-6 text-indigo-600" />
@@ -186,7 +192,11 @@ export const Analytics: React.FC = () => {
                 <div className="ml-4 flex-1">
                   <p className="text-sm font-medium text-gray-500">{metric.name}</p>
                   <div className="flex items-center space-x-2">
-                    <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                    {loading ? (
+                      <div className="h-6 mt-2 w-9 bg-indigo-200 rounded animate-pulse"></div>
+                    ) : (
+                      <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -196,15 +206,28 @@ export const Analytics: React.FC = () => {
       </div>
 
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Posts</h2>
         <div className="space-y-4">
-          {getPosts(selected)?.length === 0 ? (
+          {loading ? (
+            <div className='w-full animate-pulse bg-blue-100/50 p-4 rounded'>
+              <div className='flex gap-2 items-center'>
+                <span className='size-8 bg-indigo-200 rounded'></span>
+                <span className='h-7 w-10 bg-indigo-200 rounded'></span>
+              </div>
+              <p className='bg-indigo-200 h-3 rounded w-90 mt-2'></p>
+              <div className='flex gap-2 mt-3'>
+                <span className='h-6 w-8 rounded bg-indigo-200'></span>
+                <span className='h-6 w-8 rounded bg-indigo-200'></span>
+                <span className='h-6 w-8 rounded bg-indigo-200'></span>
+              </div>
+            </div>
+          ) : (getPosts(selected)?.length === 0) ? (
             <p className="text-gray-600">No posts available for {selected}.</p>
           ) : (
             <>
               {getPosts(selected)?.map((post) => (
-                <div key={post._id} className="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition-shadow duration-200">
+                <div key={post._id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow duration-200">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className={`p-1.5 rounded ${getPlatformColor(post.platform)}`}>
@@ -219,7 +242,11 @@ export const Analytics: React.FC = () => {
                   <div className="flex items-center space-x-6 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <EyeIcon className="h-4 w-4" />
-                      <span>{post.analytics.likes}</span>
+                      {loading ? (
+                        <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div> 
+                      ) : (
+                        <span>{post.analytics.likes}</span>
+                      )}
                     </div>
                     <div className="flex items-center space-x-1">
                       <ThumbsUpIcon className="h-4 w-4" />

@@ -90,6 +90,10 @@ class ApiService {
     return this.request('/posts');
   }
 
+  async getPostByFilter() {
+    return this.request('/posts?filter=recent');
+  }
+
   async createPost(postData: any) {
     return this.request('/posts', {
       method: 'POST',

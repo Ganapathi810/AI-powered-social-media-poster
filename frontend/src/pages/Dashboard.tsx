@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   CheckCircle,
-  Eye,
   ExternalLink,
   X,
 } from 'lucide-react';
@@ -37,9 +36,11 @@ export const Dashboard: React.FC = () => {
   ]);
 
   const [authUrls, setAuthUrls] = useState<{[key: string]: string}>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [recentPosts, setRecentPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
 
   useEffect(() => {
     loadSocialAccounts();
@@ -67,8 +68,25 @@ export const Dashboard: React.FC = () => {
     getPostsFromBackend()
   },[])
 
+  useEffect(() => {
+    const getRecentPosts = async () => {
+      try {
+        setLoadingPosts(true)
+        const recentPosts = await apiService.getPostByFilter();
+        setRecentPosts(recentPosts);
+      } catch (error) {
+        console.error("Failed to fetch recent posts: ",error)
+        toast.error('Error loading recent posts. Please try again later.');
+      } finally {
+        setLoadingPosts(false);
+      }
+    }
+    getRecentPosts()
+  },[])
+
   const loadSocialAccounts = async () => {
     try {
+      setLoading(true);
       const accounts = await apiService.getSocialAccounts();
       setSocialAccounts([
         { 
@@ -170,8 +188,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const recentPosts: any[] = [];
-
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'twitter': return <FaXTwitter className="h-5 w-5" />;
@@ -185,22 +201,6 @@ export const Dashboard: React.FC = () => {
       case 'twitter': return 'text-blue-500 bg-blue-50';
       case 'linkedin': return 'text-blue-700 bg-blue-50';
       default: return 'text-gray-500 bg-gray-50';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'text-green-700 bg-green-50';
-      case 'draft': return 'text-gray-700 bg-gray-50';
-      default: return 'text-gray-700 bg-gray-50';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'published': return <CheckCircle className="h-4 w-4" />;
-      case 'draft': return <Eye className="h-4 w-4" />;
-      default: return null;
     }
   };
 
@@ -225,36 +225,48 @@ export const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 p-6 hover:shadow-md hover:shadow-indigo-200 transition-shadow duration-200">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total posts published</p>
-              <p className="text-2xl font-bold text-gray-900">{postStats.total}</p>
+              {loading ? (
+                <div className="h-6 mt-2 w-9 bg-indigo-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{postStats.total}</p>
+              )}
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 p-6 hover:shadow-md hover:shadow-indigo-200 transition-shadow duration-200">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <X className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total published on X (formerly Twitter)</p>
-              <p className="text-2xl font-bold text-gray-900">{postStats.totalPublishedOnTwitter}</p>
+              {loading ? (
+                <div className="h-6 mt-2 w-9 bg-indigo-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">{postStats.totalPublishedOnTwitter}</p>
+              )}
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 p-6 hover:shadow-md hover:shadow-indigo-200 transition-shadow duration-200">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <FaLinkedinIn className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total publised on LinkedIN</p>
+              {loading ? (
+                <div className="h-6 mt-2 w-9 bg-indigo-200 rounded animate-pulse"></div>
+              ) : (
               <p className="text-2xl font-bold text-gray-900">{postStats.totalPublishedOnLinkedin}</p>
+              )}
             </div>
           </div>
         </div>
@@ -262,7 +274,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Connected Accounts */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl h-80 shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Connected Accounts</h2>
           <div className="space-y-4">
             {socialAccounts.map((account) => (
@@ -274,43 +286,52 @@ export const Dashboard: React.FC = () => {
                   <div>
                     <p className="font-medium text-gray-900 capitalize">{account.platform}</p>
                     <p className="text-sm text-gray-500">
-                      {account.connected ? account.username : 'Not connected'}
+                      {loading ? (
+                        <span className="h-3 w-20 bg-indigo-200 rounded animate-pulse inline-block mt-1"></span>
+                      ) : account.connected ? (
+                        <>Connected</>
+                      ) : (
+                        <>Not connected</>
+                      )}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                    <button 
-                      onClick={async () => {
-                        if(account.connected) {
-                          setDisconnecting(account.platform)
-                          try {
-                            await apiService.disconnectSocialAccount(account.platform)
-                            loadSocialAccounts();
-                          } catch(error) {
-                            console.error("Failed to disconnect:",error)
-                            toast.error("Error disconnecting account. Please try again.");
-                          } finally {
-                            setDisconnecting(null)
+                    {loading ? (
+                      <div className="h-8 w-34 bg-indigo-200 rounded animate-pulse"></div>
+                    ) : (
+                      <button 
+                        onClick={async () => {
+                          if(account.connected) {
+                            setDisconnecting(account.platform)
+                            try {
+                              await apiService.disconnectSocialAccount(account.platform)
+                              loadSocialAccounts();
+                            } catch(error) {
+                              console.error("Failed to disconnect:",error)
+                              toast.error("Error disconnecting account. Please try again.");
+                            } finally {
+                              setDisconnecting(null)
+                            }
                           }
-
-                        }
-                        else
-                          handleConnectAccount(account.platform)
-                      }}
-                      className={`${account.connected ? "bg-red-500/50 hover:bg-red-500/90  active:bg-red-900" : "bg-white hover:bg-black/10 active:bg-black/20"} inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 transition-colors duration-200 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
-                      disabled={loading || connecting === account.platform}
-                    >
-                      {!account.connected ? (
-                        <>
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        {connecting === account.platform ? 'Connecting...' : `Connect ${account.platform}`}
-                        </>
-                      ): (
-                        <>
-                          {disconnecting === account.platform ? 'Disconnecting...' : account.connected ? "Disconnect" : `Disconnect ${account.platform}`}
-                        </>
-                      )}
-                    </button>
+                          else
+                            handleConnectAccount(account.platform)
+                        }}
+                        className={`${account.connected ? "bg-red-500/50 hover:bg-red-500/90  active:bg-red-900" : "bg-white hover:bg-black/10 active:bg-black/20"} inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 transition-colors duration-200 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+                        disabled={loading || connecting === account.platform}
+                      >
+                        {!account.connected ? (
+                          <>
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          {connecting === account.platform ? 'Connecting...' : `Connect ${account.platform}`}
+                          </>
+                        ): (
+                          <>
+                            {disconnecting === account.platform ? 'Disconnecting...' : account.connected ? "Disconnect" : `Disconnect ${account.platform}`}
+                          </>
+                        )}
+                      </button>
+                    )}
                 </div>
               </div>
             ))}
@@ -318,46 +339,43 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Recent Posts */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl h-80  shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Recent Posts</h2>
             <Link
-              to="/calendar"
+              to="/analytics"
               className="text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors duration-200"
             >
               View all
             </Link>
           </div>
-          <div className="space-y-4">
-            {recentPosts.length > 0 ? (
-              recentPosts.map((post) => (
-                <div key={post._id} className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <div className={`p-1.5 rounded ${getPlatformColor(post.platform)}`}>
-                        {getPlatformIcon(post.platform)}
-                      </div>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
-                        {getStatusIcon(post.status)}
-                        <span className="ml-1 capitalize">{post.status}</span>
-                      </span>
-                    </div>
-                    {post.scheduledFor && (
-                      <span className="text-xs text-gray-500">
-                        {new Date(post.scheduledFor).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-700 line-clamp-2 mb-3">{post.content}</p>
-                  {post.status === 'published' && (
-                    <div className="flex space-x-4 text-xs text-gray-500">
-                      <span>{post.engagement.likes} likes</span>
-                      <span>{post.engagement.shares} shares</span>
-                      <span>{post.engagement.comments} comments</span>
-                    </div>
-                  )}
+          <div className="space-y-4 h-10/12 overflow-y-auto">
+            {loadingPosts ? (
+              <div className='space-y-4'>
+                <div className='w-full animate-pulse bg-blue-100/50 p-5 rounded'>
+                    <div className='size-8 bg-indigo-200 rounded'></div>
+                    <div className='w-90 h-3 rounded bg-indigo-200 mt-2'></div>
                 </div>
-              ))
+                <div className='w-full animate-pulse bg-blue-100/50 p-5 rounded'>
+                    <div className='size-8 bg-indigo-200 rounded'></div>
+                    <div className='w-90 h-3 rounded bg-indigo-200 mt-2'></div>
+                </div>
+              </div>
+            ) : recentPosts.length > 0 ? (
+              <>
+                {recentPosts.map((post) => (
+                  <div key={post._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className={`p-1.5 rounded ${getPlatformColor(post.platform)}`}>
+                          {getPlatformIcon(post.platform)}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-2 mb-3">{post.content}</p>
+                  </div>
+                ))}
+              </>
             ) : (
               <div className="text-center py-8">
                 <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
