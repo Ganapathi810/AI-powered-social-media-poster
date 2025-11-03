@@ -1,5 +1,6 @@
 const axios = require('axios');
 const User = require('../models/User');
+const { twitterClient } = require('../config/twitter');
 
 const router = require('express').Router();
 
@@ -19,29 +20,32 @@ router.get("/twitter/:tweetId", async (req, res) => {
       return res.status(400).json({ success: false, message: 'LinkedIn account not connected' });
     }
 
-    const response = await axios.get(
-      `https://api.x.com/2/tweets/${tweetId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        params: {
-          "tweet.fields": "public_metrics,created_at",
-        },
-      }
-    );
+    const analytics = await twitterClient.v2.tweet(tweetId, { "tweet.fields": "public_metrics,non_public_metrics" });
+    console.log("Analytics for tweet: ",analytics);
 
-    const tweet = response.data.data;
+    // const response = await axios.get(
+    //   `https://api.x.com/2/tweets/${tweetId}`,
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${accessToken}`,
+    //     },
+    //     params: {
+    //       "tweet.fields": "public_metrics,created_at",
+    //     },
+    //   }
+    // );
 
-    const analytics = {
-      tweetId: tweet.id,
-      impressions: tweet.public_metrics.impression_count,
-      likes: tweet.public_metrics.like_count,
-      retweets: tweet.public_metrics.retweet_count,
-      replies: tweet.public_metrics.reply_count,
-      quotes: tweet.public_metrics.quote_count,
-      createdAt: tweet.created_at,
-    };
+    // const tweet = response.data.data;
+
+    // const analytics = {
+    //   tweetId: tweet.id,
+    //   impressions: tweet.public_metrics.impression_count,
+    //   likes: tweet.public_metrics.like_count,
+    //   retweets: tweet.public_metrics.retweet_count,
+    //   replies: tweet.public_metrics.reply_count,
+    //   quotes: tweet.public_metrics.quote_count,
+    //   createdAt: tweet.created_at,
+    // };
 
     res.json({ success: true, analytics });
   } catch (err) {
@@ -88,6 +92,7 @@ router.get("/twitter", async (req, res) => {
       }),
       { impressions: 0, likes: 0, retweets: 0, replies: 0, quotes: 0 }
     );
+    console.log("Total analytics: ",totals);
 
     res.json({ success: true, totals, posts: analyticsList });
   } catch (err) {
@@ -98,6 +103,9 @@ router.get("/twitter", async (req, res) => {
 
 router.get("/linkedin/:postId", async (req, res) => {
   try {
+    
+    return
+    
     const { postId } = req.params;
 
 
@@ -163,6 +171,8 @@ router.get("/linkedin/:postId", async (req, res) => {
 
 router.get("/linkedin", async (req, res) => {
   try {
+
+    return;
     const postIds = ["urn:li:share:72384823849234", "urn:li:share:72384823923948"];
 
     const analyticsList = [];

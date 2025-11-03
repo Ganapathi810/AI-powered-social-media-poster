@@ -118,10 +118,13 @@ class ApiService {
     return this.request(`/posts/calendar?startDate=${startDate}&endDate=${endDate}`);
   }
 
-  async getAnalytics() {
-    return this.request('/posts/analytics');
+  async getAnalyticsByPlatform(platform: string) {
+    if(platform === 'twitter'){
+      return this.request(`/analytics/twitter`);
+    } else if (platform === 'linkedin'){
+      return this.request(`/analytics/linkedin`);
+    }
   }
-
   // Social accounts methods
   async getSocialAccounts() {
     return this.request('/social/accounts');

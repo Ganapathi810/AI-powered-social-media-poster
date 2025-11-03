@@ -53,6 +53,22 @@ export const Analytics: React.FC = () => {
       getPostsFromBackend()
   },[])
 
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true)
+        const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
+        console.log("Fetched analytics data: ",analyticsData);
+      } catch (error) {
+        console.error("Error fetching analytics: ",error);
+      } finally {
+        setLoading(false)
+      } 
+    }
+
+    fetchAnalytics()
+  },[])
+
   const platformAnalytics = useMemo(() => {
     const twitterTotals = postsOnTwitter.reduce(
       (total, post) => {

@@ -18,7 +18,7 @@ router.get('/twitter', async (req, res) => {
   const { url, codeVerifier, state } = twitterClient.generateOAuth2AuthLink(
     process.env.TWITTER_CALLBACK_URL || "http://localhost:5000/api/social/auth/twitter/callback",
     {
-      scope: ["tweet.read", "tweet.write", "users.read", "offline.access"],
+      scope: ["tweet.read", "tweet.write", "users.read", "offline.access","tweet.metrics.read"],
     }
   );
 

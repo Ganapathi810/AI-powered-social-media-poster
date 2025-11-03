@@ -6,8 +6,20 @@ const router = express.Router();
 // Get all posts for user
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find({ userId: req.userId })
-      .sort({ createdAt: -1 });
+
+    const filter = req.query.filter
+
+    let posts;
+
+    if(filter === 'recent') {
+     posts = await Post.find({ userId: req.userId })
+                  .sort({ createdAt: -1 })
+                  .limit(4);
+    } else {
+      posts = await Post.find({ userId: req.userId })
+                  .sort({ createdAt: -1 });
+      
+    }
     res.json(posts);
   } catch (error) {
     console.error('Get posts error:', error);
