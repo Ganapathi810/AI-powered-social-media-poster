@@ -6,6 +6,7 @@ const router = require('express').Router();
 
 router.get("/twitter/:tweetId", async (req, res) => {
   try {
+    console.log("inside twitter analytics by tweetId route");
     const { tweetId } = req.params;
 
     const user = await User.findById(req.userId);
@@ -55,16 +56,15 @@ router.get("/twitter/:tweetId", async (req, res) => {
 });
 
 router.get("/twitter", async (req, res) => {
+  console.log('inside twitter analytics route');
   try {
     // Assume you store tweet IDs in DB
-    const tweetIds = ["1842726129823735", "1842736129445723"]; 
-
     const response = await axios.get(
       "https://api.x.com/2/tweets",
       {
         headers: { Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}` },
         params: {
-          ids: tweetIds.join(","),
+          id: "1984925397029691736",
           "tweet.fields": "public_metrics,created_at",
         },
       }

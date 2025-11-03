@@ -125,6 +125,14 @@ class ApiService {
       return this.request(`/analytics/linkedin`);
     }
   }
+
+  async getAnalyticsByPostId(platform: string, postId: string) {
+    if(platform === 'twitter'){
+      return this.request(`/analytics/twitter/${postId}`);
+    } else if (platform === 'linkedin'){
+      return this.request(`/analytics/linkedin/${postId}`);
+    } 
+  }
   // Social accounts methods
   async getSocialAccounts() {
     return this.request('/social/accounts');

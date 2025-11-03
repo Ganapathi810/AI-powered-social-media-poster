@@ -69,6 +69,23 @@ export const Analytics: React.FC = () => {
     fetchAnalytics()
   },[])
 
+  useEffect(() => {
+    const fetchPostAnalytics = async () => {
+      try {
+        setLoading(true)
+        const postId = "1984925397029691736"; 
+        const postAnalytics = await apiService.getAnalyticsByPostId("twitter",postId)// Example tweet ID
+        console.log("Fetched post analytics: ",postAnalytics);
+      } catch (error) {
+        console.error("Error fetching post analytics: ",error);
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPostAnalytics()
+  })
+
   const platformAnalytics = useMemo(() => {
     const twitterTotals = postsOnTwitter.reduce(
       (total, post) => {
