@@ -7,7 +7,7 @@ const twitterClient = new TwitterApi({
 });
 
 // Refresh token flow
-async function refreshTwitterToken(user) {
+async function getTwitterClientAfterTokenRefresh(user) {
   
     const {
       client,
@@ -26,6 +26,6 @@ async function refreshTwitterToken(user) {
   }
 
   module.exports = {
-    refreshTwitterToken,
+    getTwitterClientAfterTokenRefresh,
     twitterClient
   }

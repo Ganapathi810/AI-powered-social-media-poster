@@ -1,6 +1,7 @@
 const axios = require('axios');
 const User = require('../models/User');
-const { twitterClient } = require('../config/twitter');
+const { getTwitterClientAfterTokenRefresh } = require('../config/twitter');
+const { TwitterApi } = require('twitter-api-v2');
 
 const router = require('express').Router();
 
@@ -15,14 +16,34 @@ router.get("/twitter/:tweetId", async (req, res) => {
         return res.status(404).json({ success: false, message: "User not found" });
     }
     
-    const accessToken = user.socialAccounts.twitter.accessToken;   
+    const { accessToken, refreshToken, expiresAt } = user.socialAccounts.twitter || {}; 
 
     if (!accessToken) {
-      return res.status(400).json({ success: false, message: 'LinkedIn account not connected' });
+      return res.status(400).json({ success: false, message: 'Twitter account not connected' });
     }
 
-    const analytics = await twitterClient.v2.tweet(tweetId, { "tweet.fields": "public_metrics,non_public_metrics" });
-    console.log("Analytics for tweet: ",analytics);
+    if (Date.now() > expiresAt && refreshToken) {
+      console.log("Access token expired. Refreshing...");
+
+      const refreshedClient = await getTwitterClientAfterTokenRefresh(user);
+
+      const analytics = await refreshedClient.v2.tweet(tweetId, {
+          "tweet.fields": "public_metrics,created_at",
+        });
+
+      return res.json({ success: true, analytics: analytics.data });
+    }
+
+    const userClient = new TwitterApi(accessToken);
+    const analytics = await userClient.v2.tweet(tweetId, {
+      "tweet.fields": "public_metrics,created_at",
+    });
+
+    console.log('Analutics data:', analytics);
+
+    console.log("Analytics for tweet:", analytics.data);
+    res.json({ success: true, analytics: analytics.data });
+
 
     // const response = await axios.get(
     //   `https://api.x.com/2/tweets/${tweetId}`,
