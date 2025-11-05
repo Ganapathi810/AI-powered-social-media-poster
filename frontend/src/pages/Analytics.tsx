@@ -29,7 +29,6 @@ export const Analytics: React.FC = () => {
   const [selected,setSelected] = useState('twitter')
   const [postsOnTwitter,setPostsOnTwitter] = useState<Post[]>([])
   const [postsOnLinkedIn,setPostsOnLinkedIn] = useState<Post[]>([])
-  const [loading,setLoading] = useState(false)
   const [loadingTwitterAnalytics,setLoadingTwitterAnalytics] = useState(false)
   const [loadingLinkedinAnalytics,setLoadingLinkedinAnalytics] = useState(false)
   const [loadingPosts,setLoadingPosts] = useState(false)
@@ -249,11 +248,7 @@ export const Analytics: React.FC = () => {
                   <div className="flex items-center space-x-6 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <EyeIcon className="h-4 w-4" />
-                      {loading ? (
-                        <div className="h-4 w-6 bg-gray-200 rounded animate-pulse"></div> 
-                      ) : (
-                        <span>{post.analytics.likes}</span>
-                      )}
+                      <span>{post.analytics.likes}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <ThumbsUpIcon className="h-4 w-4" />
