@@ -77,8 +77,8 @@ export const Analytics: React.FC = () => {
         setLoading(true)
         const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
         setTotalTwitterAnalytics(analyticsData.totals)
-        // const linkedinAnalyticsData = await apiService.getAnalyticsByPlatform("linkedin");
-        // setTotalLinkedinAnalytics(linkedinAnalyticsData.totals)
+        const linkedinAnalyticsData = await apiService.getAnalyticsByPlatform("linkedin");
+        setTotalLinkedinAnalytics(linkedinAnalyticsData.totals)
         console.log("Fetched analytics data: ",analyticsData);
       } catch (error) {
         
