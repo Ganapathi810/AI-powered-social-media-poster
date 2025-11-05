@@ -30,6 +30,8 @@ export const Analytics: React.FC = () => {
   const [postsOnTwitter,setPostsOnTwitter] = useState<Post[]>([])
   const [postsOnLinkedIn,setPostsOnLinkedIn] = useState<Post[]>([])
   const [loading,setLoading] = useState(false)
+  const [loadingTwitterAnalytics,setLoadingTwitterAnalytics] = useState(false)
+  const [loadingLinkedinAnalytics,setLoadingLinkedinAnalytics] = useState(false)
   const [loadingPosts,setLoadingPosts] = useState(false)
   const [totalTwitterAnalytics,setTotalTwitterAnalytics] = useState({ 
     impressions: 0, 
@@ -55,7 +57,8 @@ export const Analytics: React.FC = () => {
           const posts = await apiService.getPosts()
           console.log(posts)
           const publishedOnTwitter = posts.filter((post: any) => post.platform === "twitter")
-          const publishedOnLinkedIn = posts.filter((post: any) => post.platform === "linkedin")
+      
+    const publishedOnLinkedIn = posts.filter((post: any) => post.platform === "linkedin")
           setPostsOnLinkedIn(publishedOnLinkedIn)
           setPostsOnTwitter(publishedOnTwitter)
 
@@ -69,27 +72,43 @@ export const Analytics: React.FC = () => {
   
       getPostsFromBackend()
   },[])
-
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchTwitterAnalytics = async () => {
       try {
         console.log('front end fetching analytics')
-        setLoading(true)
+        setLoadingTwitterAnalytics(true)
         const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
         setTotalTwitterAnalytics(analyticsData.totals)
-        const linkedinAnalyticsData = await apiService.getAnalyticsByPlatform("linkedin");
-        setTotalLinkedinAnalytics(linkedinAnalyticsData.totals)
-        console.log("Fetched analytics data: ",analyticsData);
+        console.log("Fetched twitter analytics data: ",analyticsData);
       } catch (error) {
         
-        console.error("Error fetching analytics: ",error);
-        toast.error('Error fetching analytics data. Please try again later.');
+        console.error("Error fetching twitter analytics: ",error);
+        toast.error('Error fetching twitter analytics data. Please try again later.');
       } finally {
-        setLoading(false)
+        setLoadingTwitterAnalytics(false)
       } 
     }
 
-    fetchAnalytics()
+    fetchTwitterAnalytics()
+  },[])
+
+  useEffect(() => {
+    const fetchLinkedinAnalytics = async () => {
+      try {
+        setLoadingLinkedinAnalytics(true)
+        const linkedinAnalyticsData = await apiService.getAnalyticsByPlatform("linkedin");
+        setTotalLinkedinAnalytics(linkedinAnalyticsData.totals)
+        console.log("Fetched linkedin analytics data: ",linkedinAnalyticsData);
+      } catch (error) {
+        
+        console.error("Error fetching linked analytics: ",error);
+        toast.error('Error fetching linkedin analytics data. Please try again later.');
+      } finally {
+        setLoadingLinkedinAnalytics(false)
+      } 
+    }
+    
+    fetchLinkedinAnalytics()
   },[])
 
 
@@ -180,7 +199,7 @@ export const Analytics: React.FC = () => {
                 <div className="ml-4 flex-1">
                   <p className="text-sm font-medium text-gray-500">{metric.name}</p>
                   <div className="flex items-center space-x-2">
-                    {loading ? (
+                    {(selected === 'twitter' ? loadingTwitterAnalytics : loadingLinkedinAnalytics) ? (
                       <div className="h-6 mt-2 w-9 bg-indigo-200 rounded animate-pulse"></div>
                     ) : (
                       <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
