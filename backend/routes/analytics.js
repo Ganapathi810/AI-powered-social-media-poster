@@ -46,7 +46,7 @@ router.get("/twitter", async (req, res) => {
       tweetId: t.id,
       impressions: t.public_metrics.impression_count,
       likes: t.public_metrics.like_count,
-      bookmarsks: t.public_metrics.bookmark_count,
+      bookmarks: t.public_metrics.bookmark_count,
       retweets: t.public_metrics.retweet_count,
       replies: t.public_metrics.reply_count,
       quotes: t.public_metrics.quote_count,
