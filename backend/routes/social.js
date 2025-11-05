@@ -2,7 +2,7 @@ const express = require('express');
 
 const User = require('../models/User');
 const { TwitterApi } = require('twitter-api-v2');
-const { refreshTwitterToken } = require('../config/twitter');
+const { getTwitterClientAfterTokenRefresh } = require('../config/twitter');
 const { default: axios } = require('axios');
 const Post = require('../models/Post');
 
@@ -82,12 +82,12 @@ router.post('/twitter/publish', async (req, res) => {
     }
 
     let client;
-    const { accessToken, refreshToken, expiresAt } = user.socialAccounts.twitter;
+    const { accessToken, expiresAt } = user.socialAccounts.twitter;
 
     // if token expired → refresh
     if (!accessToken || Date.now() >= expiresAt) {
       console.log("Refreshing expired Twitter token...");
-      client = await refreshTwitterToken(user);
+      client = await getTwitterClientAfterTokenRefresh(user);
     } else {
       client = new TwitterApi(accessToken);
     }
@@ -101,17 +101,7 @@ router.post('/twitter/publish', async (req, res) => {
       platform: 'twitter',
       postId: tweet.data.id,
       publishedAt: new Date(),
-      analytics: {
-        impressions: 0,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        clicks: 0,
-        engagementRate: 0,
-      },
     });
-
-    
 
     res.json({ message: "Tweet posted successfully", tweet });
   } catch (err) {

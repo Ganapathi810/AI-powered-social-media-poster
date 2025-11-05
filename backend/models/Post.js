@@ -16,12 +16,22 @@ const postSchema = new mongoose.Schema({
     required: true 
   },
   analytics: {
-    impressions: { type: Number, default: 0 },
-    likes: { type: Number, default: 0 },
-    comments: { type: Number, default: 0 },
-    shares: { type: Number, default: 0 },
-    clicks: { type: Number, default: 0 }, 
-    engagementRate: { type: Number, default: 0 }, 
+    twitter: {
+      impressions: { type: Number, default: 0 },
+      likes: { type: Number, default: 0 },
+      retweets: { type: Number, default: 0 },
+      replies: { type: Number, default: 0 },
+      quotes: { type: Number, default: 0 },
+      bookmarks: { type: Number, default: 0 },
+    },
+    linkedin: {
+      impressions: { type: Number, default: 0 },
+      likes: { type: Number, default: 0 },
+      comments: { type: Number, default: 0 },
+      shares: { type: Number, default: 0 },
+      clicks: { type: Number, default: 0 }, 
+      engagementRate: { type: Number, default: 0 }, 
+    },
   },
   publishedAt: {
     type: Date,

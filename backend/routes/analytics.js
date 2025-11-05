@@ -1,6 +1,7 @@
 const axios = require('axios');
 const User = require('../models/User');
 const { getTwitterClientAfterTokenRefresh } = require('../config/twitter');
+const Post = require('../models/Post');
 
 const router = require('express').Router();
 
@@ -38,7 +39,7 @@ router.get("/twitter", async (req, res) => {
         },
       }
     );
-
+    
     const tweets = response.data.data;
 
     const analyticsList = tweets.map((t) => ({
@@ -51,6 +52,25 @@ router.get("/twitter", async (req, res) => {
       quotes: t.public_metrics.quote_count,
       createdAt: t.created_at,
     }));
+
+    const updatePromises = analyticsList.map((a) =>
+      Post.updateOne(
+        { userId: req.userId, platform: "twitter", postId: a.tweetId },
+        {
+          $set: {
+            "publishedAt": new Date(a.createdAt),
+            "analytics.twitter.impressions": a.impressions,
+            "analytics.twitter.likes": a.likes,
+            "analytics.twitter.retweets": a.retweets,
+            "analytics.twitter.replies": a.replies,
+            "analytics.twitter.quotes": a.quotes,
+            "analytics.twitter.bookmarks": a.bookmarks,
+          },
+        }
+      )
+    );
+
+    await Promise.all(updatePromises);
 
     // Combine totals
     const totals = analyticsList.reduce(
@@ -83,6 +103,7 @@ router.get("/linkedin/:postId", async (req, res) => {
   try {
     
     return
+
     
     const { postId } = req.params;
 
