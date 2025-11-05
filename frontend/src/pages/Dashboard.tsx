@@ -20,7 +20,6 @@ interface SocialAccount {
   platform: 'twitter' | 'linkedin'
   username: string;
   connected: boolean;
-  followers: number;
 }
 
 export const Dashboard: React.FC = () => {
@@ -31,8 +30,8 @@ export const Dashboard: React.FC = () => {
   });
 
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([
-    { platform: 'twitter', username: '', connected: false, followers: 0 },
-    { platform: 'linkedin', username: '', connected: false, followers: 0 },
+    { platform: 'twitter', username: '', connected: false },
+    { platform: 'linkedin', username: '', connected: false },
   ]);
 
   const [authUrls, setAuthUrls] = useState<{[key: string]: string}>({});
@@ -93,13 +92,11 @@ export const Dashboard: React.FC = () => {
           platform: 'twitter', 
           username: accounts.twitter?.username || '', 
           connected: accounts.twitter?.connected || false, 
-          followers: 0 
         },
         { 
           platform: 'linkedin', 
           username: accounts.linkedin?.username || '', 
           connected: accounts.linkedin?.connected || false, 
-          followers: 0 
         },
       ]);
     } catch (error) {
@@ -289,7 +286,10 @@ export const Dashboard: React.FC = () => {
                       {loading ? (
                         <span className="h-3 w-20 bg-indigo-200 rounded animate-pulse inline-block mt-1"></span>
                       ) : account.connected ? (
-                        <>Connected</>
+                        <>
+                          <span className='mr-2 text-gray-700'>{`@${account.username}`}</span>
+                          <span>connected</span>
+                        </>
                       ) : (
                         <>Not connected</>
                       )}

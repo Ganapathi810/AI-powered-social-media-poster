@@ -45,11 +45,21 @@ router.get('/twitter/callback',
         redirectUri: process.env.TWITTER_CALLBACK_URL || "http://localhost:5000/api/social/auth/twitter/callback"
       });
 
+      const response = await axios.get(
+        "https://api.x.com/2/users/me",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      const { id, username } = response.data.data;
 
       const user = await User.findById(oauthRecord.userId);
       if (!user) return res.status(404).send("User not found");
   
       user.socialAccounts.twitter = {
+        id,
+        username,
         connected: true,
         accessToken,
         refreshToken,

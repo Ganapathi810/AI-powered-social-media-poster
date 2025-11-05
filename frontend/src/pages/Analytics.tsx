@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   TrendingUp, 
   MessageCircle, 
@@ -30,11 +30,28 @@ export const Analytics: React.FC = () => {
   const [postsOnTwitter,setPostsOnTwitter] = useState<Post[]>([])
   const [postsOnLinkedIn,setPostsOnLinkedIn] = useState<Post[]>([])
   const [loading,setLoading] = useState(false)
+  const [loadingPosts,setLoadingPosts] = useState(false)
+  const [totalTwitterAnalytics,setTotalTwitterAnalytics] = useState({ 
+    impressions: 0, 
+    likes: 0, 
+    retweets: 0, 
+    replies: 0, 
+    quotes: 0, 
+    bookmarks: 0 
+  })
+  const [totalLinkedinAnalytics,setTotalLinkedinAnalytics] = useState({ 
+    impressions: 0, 
+    likes: 0, 
+    retweets: 0, 
+    replies: 0, 
+    quotes: 0, 
+    bookmarks: 0 
+  })
   
   useEffect(() => {
       const getPostsFromBackend = async () => {
         try {
-          setLoading(true)
+          setLoadingPosts(true)
           const posts = await apiService.getPosts()
           console.log(posts)
           const publishedOnTwitter = posts.filter((post: any) => post.platform === "twitter")
@@ -46,7 +63,7 @@ export const Analytics: React.FC = () => {
           console.error("Failed to fetch Post stats: ",error)
           toast.error('Error loading post statistics. Please try again later.');
         } finally {
-          setLoading(false)
+          setLoadingPosts(false)
         }
       }
   
@@ -59,9 +76,14 @@ export const Analytics: React.FC = () => {
         console.log('front end fetching analytics')
         setLoading(true)
         const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
+        setTotalTwitterAnalytics(analyticsData.totals)
+        // const linkedinAnalyticsData = await apiService.getAnalyticsByPlatform("linkedin");
+        // setTotalLinkedinAnalytics(linkedinAnalyticsData.totals)
         console.log("Fetched analytics data: ",analyticsData);
       } catch (error) {
+        
         console.error("Error fetching analytics: ",error);
+        toast.error('Error fetching analytics data. Please try again later.');
       } finally {
         setLoading(false)
       } 
@@ -70,71 +92,7 @@ export const Analytics: React.FC = () => {
     fetchAnalytics()
   },[])
 
-  useEffect(() => {
-    const fetchPostAnalytics = async () => {
-      try {
-        setLoading(true)
-        const postId = "1984925397029691736"; 
-        const postAnalytics = await apiService.getAnalyticsByPostId("twitter",postId)// Example tweet ID
-        console.log("Fetched post analytics: ",postAnalytics);
-      } catch (error) {
-        console.error("Error fetching post analytics: ",error);
-      } finally {
-        setLoading(false)
-      }
-    }
 
-    fetchPostAnalytics()
-  },[])
-
-  const platformAnalytics = useMemo(() => {
-    const twitterTotals = postsOnTwitter.reduce(
-      (total, post) => {
-        total.impressions += post.analytics.impressions || 0;
-        total.likes += post.analytics.likes || 0;
-        total.comments += post.analytics.comments || 0;
-        total.shares += post.analytics.shares || 0;
-        total.clicks += post.analytics.clicks || 0;
-        return total;
-      },
-      { impressions: 0, likes: 0, comments: 0, shares: 0, clicks: 0 }
-    );
-
-    const linkedInTotals = postsOnLinkedIn.reduce(
-      (total, post) => {
-        total.impressions += post.analytics.impressions || 0;
-        total.likes += post.analytics.likes || 0;
-        total.comments += post.analytics.comments || 0;
-        total.shares += post.analytics.shares || 0;
-        total.clicks += post.analytics.clicks || 0;
-        return total;
-      },
-      { impressions: 0, likes: 0, comments: 0, shares: 0, clicks: 0 }
-    );
-
-    return {
-      twitter: twitterTotals,
-      linkedin: linkedInTotals,
-    };
-  }, [postsOnTwitter, postsOnLinkedIn]);
-
-  const getMetrics = (platform: string) => {
-    if(platform === 'twitter'){
-      return platformAnalytics.twitter
-    } else if (platform === 'linkedin'){
-      return platformAnalytics.linkedin
-    }
-    return {
-      impressions: 0,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      clicks: 0
-    }
-  }
-
-    
-    
   const getPosts = (platform: string): Post[] => {
     if(platform === 'twitter'){
       return postsOnTwitter
@@ -161,33 +119,29 @@ export const Analytics: React.FC = () => {
     }
   };
 
-  const metrics = [
-    {
-      name: 'Impressions',
-      value: getMetrics(selected).impressions,
-      icon: Eye,
-    },
-    {
-      name: 'Likes',
-      value: getMetrics(selected).likes,
-      icon: ThumbsUpIcon,
-    },
-    {
-      name: 'Comments',
-      value: getMetrics(selected).comments,
-      icon: MessageCircle,
-    },
-    {
-      name: 'Shares', 
-      value: getMetrics(selected).shares,
-      icon: Share,
-    },
-    {
-      name: 'Clicks',
-      value: getMetrics(selected).clicks,
-      icon: TrendingUp,
-    },
-  ];
+  const getMetrics = (platform: string) => {
+    if(platform === 'twitter'){
+      return [
+        { name: 'Impressions', value: totalTwitterAnalytics.impressions, icon: Eye },
+        { name: 'Likes', value: totalTwitterAnalytics.likes, icon: ThumbsUpIcon },
+        { name: 'Retweets', value: totalTwitterAnalytics.retweets, icon: Share },
+        { name: 'Replies', value: totalTwitterAnalytics.replies, icon: MessageCircle },
+        { name: 'Quotes', value: totalTwitterAnalytics.quotes, icon: TrendingUp },
+        { name: 'Bookmarks', value: totalTwitterAnalytics.bookmarks, icon: Eye },
+      ]
+    } else if (platform === 'linkedin'){
+      return [
+        { name: 'Impressions', value: totalLinkedinAnalytics.impressions, icon: Eye },
+        { name: 'Likes', value: totalLinkedinAnalytics.likes, icon: ThumbsUpIcon }, 
+        { name: 'Retweets', value: totalLinkedinAnalytics.retweets, icon: Share },
+        { name: 'Replies', value: totalLinkedinAnalytics.replies, icon: MessageCircle },
+        { name: 'Quotes', value: totalLinkedinAnalytics.quotes, icon: TrendingUp },
+        { name: 'Bookmarks', value: totalLinkedinAnalytics.bookmarks, icon: Eye },
+      ]
+    }
+    return []
+  }
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -215,7 +169,7 @@ export const Analytics: React.FC = () => {
 
       {/* Overview Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-7">
-        {metrics.map((metric) => {
+        {getMetrics(selected).map((metric) => {
           const Icon = metric.icon;
           return (
             <div key={metric.name} className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6 hover:shadow-md transition-shadow duration-200">
@@ -243,7 +197,7 @@ export const Analytics: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-indigo-400/50 hover:shadow-indigo-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Posts</h2>
         <div className="space-y-4">
-          {loading ? (
+          {loadingPosts ? (
             <div className='w-full animate-pulse bg-blue-100/50 p-4 rounded'>
               <div className='flex gap-2 items-center'>
                 <span className='size-8 bg-indigo-200 rounded'></span>

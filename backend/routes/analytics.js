@@ -1,101 +1,49 @@
 const axios = require('axios');
 const User = require('../models/User');
 const { getTwitterClientAfterTokenRefresh } = require('../config/twitter');
-const { TwitterApi } = require('twitter-api-v2');
 
 const router = require('express').Router();
 
-router.get("/twitter/:tweetId", async (req, res) => {
+router.get("/twitter", async (req, res) => {
+  console.log('inside twitter analytics route');
   try {
-    console.log("inside twitter analytics by tweetId route");
-    const { tweetId } = req.params;
-
     const user = await User.findById(req.userId);
 
     if(!user) {
         return res.status(404).json({ success: false, message: "User not found" });
     }
     
-    const { accessToken, refreshToken, expiresAt } = user.socialAccounts.twitter || {}; 
+    const { accessToken, expiresAt } = user.socialAccounts.twitter; 
 
     if (!accessToken) {
       return res.status(400).json({ success: false, message: 'Twitter account not connected' });
     }
 
-    if (Date.now() > expiresAt && refreshToken) {
-      console.log("Access token expired. Refreshing...");
-
-      const refreshedClient = await getTwitterClientAfterTokenRefresh(user);
-
-      const analytics = await refreshedClient.v2.tweet(tweetId, {
-          "tweet.fields": "public_metrics,created_at",
-        });
-
-      return res.json({ success: true, analytics: analytics.data });
+    if (Date.now() >= expiresAt) {
+      console.log('Access token expired, refreshing...');
+      const twitterClient = await getTwitterClientAfterTokenRefresh(user);
+      accessToken = twitterClient.accessToken;
     }
 
-    const userClient = new TwitterApi(accessToken);
-    const analytics = await userClient.v2.tweet(tweetId, {
-      "tweet.fields": "public_metrics,created_at",
-    });
+    const twitterId = user.socialAccounts.twitter.id;
 
-    console.log('Analutics data:', analytics);
-
-    console.log("Analytics for tweet:", analytics.data);
-    res.json({ success: true, analytics: analytics.data });
-
-
-    // const response = await axios.get(
-    //   `https://api.x.com/2/tweets/${tweetId}`,
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${accessToken}`,
-    //     },
-    //     params: {
-    //       "tweet.fields": "public_metrics,created_at",
-    //     },
-    //   }
-    // );
-
-    // const tweet = response.data.data;
-
-    // const analytics = {
-    //   tweetId: tweet.id,
-    //   impressions: tweet.public_metrics.impression_count,
-    //   likes: tweet.public_metrics.like_count,
-    //   retweets: tweet.public_metrics.retweet_count,
-    //   replies: tweet.public_metrics.reply_count,
-    //   quotes: tweet.public_metrics.quote_count,
-    //   createdAt: tweet.created_at,
-    // };
-
-    res.json({ success: true, analytics });
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch Twitter analytics" });
-  }
-});
-
-router.get("/twitter", async (req, res) => {
-  console.log('inside twitter analytics route');
-  try {
-    // Assume you store tweet IDs in DB
     const response = await axios.get(
-      "https://api.x.com/2/tweets",
+      `https://api.x.com/2/users/${twitterId}/tweets`,
       {
-        headers: { Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
         params: {
-          id: "1984925397029691736",
-          "tweet.fields": "public_metrics,created_at",
+          "tweet.fields": "public_metrics,created_at"
         },
       }
     );
 
     const tweets = response.data.data;
+
     const analyticsList = tweets.map((t) => ({
       tweetId: t.id,
       impressions: t.public_metrics.impression_count,
       likes: t.public_metrics.like_count,
+      bookmarsks: t.public_metrics.bookmark_count,
       retweets: t.public_metrics.retweet_count,
       replies: t.public_metrics.reply_count,
       quotes: t.public_metrics.quote_count,
@@ -110,15 +58,22 @@ router.get("/twitter", async (req, res) => {
         retweets: acc.retweets + curr.retweets,
         replies: acc.replies + curr.replies,
         quotes: acc.quotes + curr.quotes,
+        bookmarks: acc.bookmarks + curr.bookmarks,
       }),
-      { impressions: 0, likes: 0, retweets: 0, replies: 0, quotes: 0 }
+      { impressions: 0, likes: 0, retweets: 0, replies: 0, quotes: 0, bookmarks: 0 }
     );
-    console.log("Total analytics: ",totals);
 
-    res.json({ success: true, totals, posts: analyticsList });
+    res.json({ success: true, totals, tweets: analyticsList });
+
   } catch (err) {
+    let message;
+    if(err.response.status === 429){
+      message = "Rate limit exceeded for Twitter API";
+    } else {
+      message = "Failed to fetch Twitter analytics";
+    }
     console.error(err.response?.data || err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch Twitter analytics" });
+    res.status(500).json({ success: false, message });
   }
 });
 

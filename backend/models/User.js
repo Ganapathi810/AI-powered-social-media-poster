@@ -20,23 +20,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  businessName: {
-    type: String,
-    default: '',
-  },
   bio: {
     type: String,
     default: '',
   },
-  businessContext: {
-    industry: String,
-    targetAudience: String,
-    brandVoice: String,
-    goals: [String],
-    keyMessages: [String],
-  },
   socialAccounts: {
     twitter: {
+      id: String,
       connected: { type: Boolean, default: false },
       username: String,
       accessToken: String,
@@ -44,32 +34,13 @@ const userSchema = new mongoose.Schema({
       expiresAt: Number
     },
     linkedin: {
+      id: String,
       connected: { type: Boolean, default: false },
       username: String,
       accessToken: String,
       refreshToken: String,
       expiresIn: Number
     },
-    instagram: {
-      connected: { type: Boolean, default: false },
-      username: String,
-      accessToken: String,
-      refreshToken: String,
-      expiresIn: Number
-    },
-  },
-  preferences: {
-    defaultTimeZone: { type: String, default: 'UTC-8' },
-    preferredPostingTime: { type: String, default: '10:00' },
-    aiWritingStyle: { type: String, default: 'professional' },
-    defaultHashtags: [String],
-  },
-  notifications: {
-    postScheduled: { type: Boolean, default: true },
-    postPublished: { type: Boolean, default: true },
-    accountConnected: { type: Boolean, default: true },
-    weeklyReport: { type: Boolean, default: false },
-    monthlyReport: { type: Boolean, default: true },
   },
 }, {
   timestamps: true,

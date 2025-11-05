@@ -8,7 +8,7 @@ const twitterClient = new TwitterApi({
 
 // Refresh token flow
 async function getTwitterClientAfterTokenRefresh(user) {
-  
+    console.log('Inside token refresh function');
     const {
       client,
       accessToken,
