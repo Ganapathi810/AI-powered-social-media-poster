@@ -34,6 +34,10 @@ router.get('/twitter/callback',
   
       const oauthRecord = await TwitterOAuth.findOne({ state });
       if (!oauthRecord) return res.status(400).send("Invalid or expired OAuth state");
+
+      console.log('OAuth record found:', oauthRecord);
+      console.log('Authorization code received:', code);
+      
   
       const {
         accessToken,

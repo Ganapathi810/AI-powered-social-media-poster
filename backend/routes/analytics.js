@@ -25,6 +25,8 @@ router.get("/twitter", async (req, res) => {
       accessToken = twitterClient.accessToken;
     }
 
+    console.log('Using access token: after refresh', accessToken);
+
     const twitterId = user.socialAccounts.twitter.id;
 
     const response = await axios.get(
