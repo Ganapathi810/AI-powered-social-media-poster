@@ -9,9 +9,10 @@ import {
   Repeat2,
   Reply,
   MessageSquareQuote,
-  Bookmark
+  Bookmark,
+  X
 } from 'lucide-react';
-import { FaLinkedinIn, FaTwitter } from 'react-icons/fa6';
+import { FaLinkedinIn } from 'react-icons/fa6';
 import { apiService } from '../services/api';
 import { toast } from 'react-toastify';
 
@@ -19,16 +20,23 @@ type Post = {
   _id: string;
   platform: string;
   content: string;
+  publishedAt: string;
   analytics: {
-    impressions: number;
-    likes: number;
-    retweets: number;
-    replies: number;
-    quotes: number;
-    bookmarks: number;
-    comments: number;
-    shares: number;
-    clicks: number;
+    twitter: {
+      impressions: number;
+      likes: number;
+      retweets: number;
+      replies: number;
+      quotes: number;
+      bookmarks: number;
+    },
+    linkedin: {
+      impressions: number;
+      likes: number;
+      comments: number;
+      shares: number;
+      clicks: number;
+    }
   };
 };
 
@@ -63,9 +71,9 @@ export const Analytics: React.FC = () => {
           setLoadingPosts(true)
           const posts = await apiService.getPosts()
           console.log(posts)
-          const publishedOnTwitter = posts.filter((post: any) => post.platform === "twitter")
-      
-    const publishedOnLinkedIn = posts.filter((post: any) => post.platform === "linkedin")
+          const publishedOnTwitter: Post[] = posts.filter((post: any) => post.platform === "twitter")
+          console.log("Published on Twitter: ",publishedOnTwitter)
+    const publishedOnLinkedIn: Post[] = posts.filter((post: any) => post.platform === "linkedin")
           setPostsOnLinkedIn(publishedOnLinkedIn)
           setPostsOnTwitter(publishedOnTwitter)
 
@@ -81,19 +89,19 @@ export const Analytics: React.FC = () => {
   },[])
   useEffect(() => {
     const fetchTwitterAnalytics = async () => {
-      try {
-        console.log('front end fetching analytics')
-        setLoadingTwitterAnalytics(true)
-        const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
-        setTotalTwitterAnalytics(analyticsData.totals)
-        console.log("Fetched twitter analytics data: ",analyticsData);
-      } catch (error) {
+      // try {
+      //   console.log('front end fetching analytics')
+      //   setLoadingTwitterAnalytics(true)
+      //   const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
+      //   setTotalTwitterAnalytics(analyticsData.totals)
+      //   console.log("Fetched twitter analytics data: ",analyticsData);
+      // } catch (error) {
         
-        console.error("Error fetching twitter analytics: ",error);
-        toast.error('Error fetching twitter analytics data. Please try again later.');
-      } finally {
-        setLoadingTwitterAnalytics(false)
-      } 
+      //   console.error("Error fetching twitter analytics: ",error);
+      //   toast.error('Error fetching twitter analytics data. Please try again later.');
+      // } finally {
+      //   setLoadingTwitterAnalytics(false)
+      // } 
     }
 
     fetchTwitterAnalytics()
@@ -131,7 +139,7 @@ export const Analytics: React.FC = () => {
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
-      case 'twitter': return <FaTwitter className="h-5 w-5" />;
+      case 'twitter': return <X className="h-5 w-5" />;
       case 'linkedin': return <FaLinkedinIn className="h-5 w-5" />;
       default: return null;
     }
@@ -150,10 +158,10 @@ export const Analytics: React.FC = () => {
       return [
         { name: 'Impressions', value: totalTwitterAnalytics.impressions, icon: Eye },
         { name: 'Likes', value: totalTwitterAnalytics.likes, icon: ThumbsUpIcon },
-        { name: 'Retweets', value: totalTwitterAnalytics.retweets, icon: Share },
-        { name: 'Replies', value: totalTwitterAnalytics.replies, icon: MessageCircle },
-        { name: 'Quotes', value: totalTwitterAnalytics.quotes, icon: TrendingUp },
-        { name: 'Bookmarks', value: totalTwitterAnalytics.bookmarks, icon: Eye },
+        { name: 'Retweets', value: totalTwitterAnalytics.retweets, icon: Repeat2 },
+        { name: 'Replies', value: totalTwitterAnalytics.replies, icon: Reply },
+        { name: 'Quotes', value: totalTwitterAnalytics.quotes, icon: MessageSquareQuote },
+        { name: 'Bookmarks', value: totalTwitterAnalytics.bookmarks, icon: Bookmark },
       ]
     } else if (platform === 'linkedin'){
       return [
@@ -166,6 +174,23 @@ export const Analytics: React.FC = () => {
       ]
     }
     return []
+  }
+
+  const twitterAnalyticsIcons = {
+    impressions: Eye,
+    likes: ThumbsUpIcon,
+    retweets: Repeat2,  
+    replies: Reply,
+    quotes: MessageSquareQuote,
+    bookmarks: Bookmark
+  }
+
+  const linkedinAnalyticsIcons = {
+    impressions: Eye,
+    likes: ThumbsUpIcon,
+    comments: MessageCircle,
+    shares: Share,
+    clicks: TrendingUp
   }
 
 
@@ -249,35 +274,21 @@ export const Analytics: React.FC = () => {
                       </div>
                       <span className="text-sm font-medium text-gray-700 capitalize">{post.platform}</span>
                     </div>
+                    <span className="text-sm text-gray-500">{new Date(post.publishedAt).toLocaleDateString()}</span>
                   </div>
                   
                   <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
                   
                   <div className="flex items-center space-x-7 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      <EyeIcon className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.impressions}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <ThumbsUpIcon className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.likes}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Repeat2 className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.retweets}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Reply className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.replies}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <MessageSquareQuote className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.quotes}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Bookmark className="h-4 w-4" />
-                      <span className='text-gray-600'>{post.analytics.bookmarks}</span>
-                    </div>
+                    {Object.entries(selected === "twitter" ? post.analytics.twitter : post.analytics.linkedin).map(([key, value]) => {
+                      const IconComponent = selected === "twitter" ? twitterAnalyticsIcons[key as keyof typeof twitterAnalyticsIcons] : linkedinAnalyticsIcons[key as keyof typeof linkedinAnalyticsIcons];
+                      return (
+                        <div key={key} className="flex items-center space-x-1">
+                          <IconComponent className="h-4 w-4" />
+                          <span className='text-gray-600'>{value}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
