@@ -89,7 +89,7 @@ router.get("/twitter", async (req, res) => {
 
   } catch (err) {
     let message;
-    if(err.response.status === 429){
+    if(err?.response?.status === 429){
       message = "Rate limit exceeded for Twitter API";
     } else {
       message = "Failed to fetch Twitter analytics";
