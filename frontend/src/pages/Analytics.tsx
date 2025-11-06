@@ -6,6 +6,10 @@ import {
   Eye,
   ThumbsUpIcon,
   EyeIcon,
+  Repeat2,
+  Reply,
+  MessageSquareQuote,
+  Bookmark
 } from 'lucide-react';
 import { FaLinkedinIn, FaTwitter } from 'react-icons/fa6';
 import { apiService } from '../services/api';
@@ -18,6 +22,10 @@ type Post = {
   analytics: {
     impressions: number;
     likes: number;
+    retweets: number;
+    replies: number;
+    quotes: number;
+    bookmarks: number;
     comments: number;
     shares: number;
     clicks: number;
@@ -245,18 +253,30 @@ export const Analytics: React.FC = () => {
                   
                   <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
                   
-                  <div className="flex items-center space-x-6 text-sm text-gray-600">
+                  <div className="flex items-center space-x-7 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
                       <EyeIcon className="h-4 w-4" />
-                      <span>{post.analytics.likes}</span>
+                      <span className='text-gray-600'>{post.analytics.impressions}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <ThumbsUpIcon className="h-4 w-4" />
-                      <span>{post.analytics.likes}</span>
+                      <span className='text-gray-600'>{post.analytics.likes}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{post.analytics.comments}</span>
+                      <Repeat2 className="h-4 w-4" />
+                      <span className='text-gray-600'>{post.analytics.retweets}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Reply className="h-4 w-4" />
+                      <span className='text-gray-600'>{post.analytics.replies}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <MessageSquareQuote className="h-4 w-4" />
+                      <span className='text-gray-600'>{post.analytics.quotes}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Bookmark className="h-4 w-4" />
+                      <span className='text-gray-600'>{post.analytics.bookmarks}</span>
                     </div>
                   </div>
                 </div>
