@@ -5,12 +5,12 @@ import {
   Share,
   Eye,
   ThumbsUpIcon,
-  EyeIcon,
   Repeat2,
   Reply,
   MessageSquareQuote,
   Bookmark,
-  X
+  X,
+  MousePointerClick,
 } from 'lucide-react';
 import { FaLinkedinIn } from 'react-icons/fa6';
 import { apiService } from '../services/api';
@@ -21,6 +21,7 @@ type Post = {
   platform: string;
   content: string;
   publishedAt: string;
+  postId: string;
   analytics: {
     twitter: {
       impressions: number;
@@ -34,7 +35,7 @@ type Post = {
       impressions: number;
       likes: number;
       comments: number;
-      shares: number;
+      reposts: number;
       clicks: number;
     }
   };
@@ -48,6 +49,7 @@ export const Analytics: React.FC = () => {
   const [loadingTwitterAnalytics,setLoadingTwitterAnalytics] = useState(false)
   const [loadingLinkedinAnalytics,setLoadingLinkedinAnalytics] = useState(false)
   const [loadingPosts,setLoadingPosts] = useState(false)
+  const [socialAccounts,setSocialAccounts] = useState([]) 
   const [totalTwitterAnalytics,setTotalTwitterAnalytics] = useState({ 
     impressions: 0, 
     likes: 0, 
@@ -59,10 +61,9 @@ export const Analytics: React.FC = () => {
   const [totalLinkedinAnalytics,setTotalLinkedinAnalytics] = useState({ 
     impressions: 0, 
     likes: 0, 
-    retweets: 0, 
-    replies: 0, 
-    quotes: 0, 
-    bookmarks: 0 
+    comments: 0, 
+    reposts: 0, 
+    clicks: 0 
   })
   
   useEffect(() => {
@@ -73,7 +74,7 @@ export const Analytics: React.FC = () => {
           console.log(posts)
           const publishedOnTwitter: Post[] = posts.filter((post: any) => post.platform === "twitter")
           console.log("Published on Twitter: ",publishedOnTwitter)
-    const publishedOnLinkedIn: Post[] = posts.filter((post: any) => post.platform === "linkedin")
+          const publishedOnLinkedIn: Post[] = posts.filter((post: any) => post.platform === "linkedin")
           setPostsOnLinkedIn(publishedOnLinkedIn)
           setPostsOnTwitter(publishedOnTwitter)
 
@@ -87,21 +88,37 @@ export const Analytics: React.FC = () => {
   
       getPostsFromBackend()
   },[])
+
+  useEffect(() => {
+    const fetchSocialAccounts = async () => {
+      try {
+        const accounts = await apiService.getSocialAccounts();
+        setSocialAccounts(accounts);
+        console.log("Fetched social accounts in analytics: ",accounts);
+      } catch (error) {
+        console.error("Error fetching social accounts in analytics: ",error);
+        toast.error('Error fetching social accounts. Please try again later.');
+      }
+    }
+
+    fetchSocialAccounts()
+  },[])
+
   useEffect(() => {
     const fetchTwitterAnalytics = async () => {
-      // try {
-      //   console.log('front end fetching analytics')
-      //   setLoadingTwitterAnalytics(true)
-      //   const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
-      //   setTotalTwitterAnalytics(analyticsData.totals)
-      //   console.log("Fetched twitter analytics data: ",analyticsData);
-      // } catch (error) {
+      try {
+        console.log('front end fetching analytics')
+        setLoadingTwitterAnalytics(true)
+        const analyticsData = await apiService.getAnalyticsByPlatform("twitter");
+        setTotalTwitterAnalytics(analyticsData.totals)
+        console.log("Fetched twitter analytics data: ",analyticsData);
+      } catch (error) {
         
-      //   console.error("Error fetching twitter analytics: ",error);
-      //   toast.error('Error fetching twitter analytics data. Please try again later.');
-      // } finally {
-      //   setLoadingTwitterAnalytics(false)
-      // } 
+        console.error("Error fetching twitter analytics: ",error);
+        toast.error('Error fetching twitter analytics data. Please try again later.');
+      } finally {
+        setLoadingTwitterAnalytics(false)
+      } 
     }
 
     fetchTwitterAnalytics()
@@ -167,10 +184,9 @@ export const Analytics: React.FC = () => {
       return [
         { name: 'Impressions', value: totalLinkedinAnalytics.impressions, icon: Eye },
         { name: 'Likes', value: totalLinkedinAnalytics.likes, icon: ThumbsUpIcon }, 
-        { name: 'Retweets', value: totalLinkedinAnalytics.retweets, icon: Share },
-        { name: 'Replies', value: totalLinkedinAnalytics.replies, icon: MessageCircle },
-        { name: 'Quotes', value: totalLinkedinAnalytics.quotes, icon: TrendingUp },
-        { name: 'Bookmarks', value: totalLinkedinAnalytics.bookmarks, icon: Eye },
+        { name: 'Comments', value: totalLinkedinAnalytics.comments, icon: MessageCircle },
+        { name: 'Reposts', value: totalLinkedinAnalytics.reposts, icon: Repeat2 },
+        { name: 'Clicks', value: totalLinkedinAnalytics.clicks, icon: MousePointerClick },
       ]
     }
     return []
@@ -266,32 +282,34 @@ export const Analytics: React.FC = () => {
           ) : (
             <>
               {getPosts(selected)?.map((post) => (
-                <div key={post._id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow duration-200">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className={`p-1.5 rounded ${getPlatformColor(post.platform)}`}>
-                        {getPlatformIcon(post.platform)}
-                      </div>
-                      <span className="text-sm font-medium text-gray-700 capitalize">{post.platform}</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{new Date(post.publishedAt).toLocaleDateString()}</span>
-                  </div>
-                  
-                  <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
-                  
-                  <div className="flex items-center space-x-7 text-sm text-gray-600">
-                    {Object.entries(selected === "twitter" ? post.analytics.twitter : post.analytics.linkedin).map(([key, value]) => {
-                      const IconComponent = selected === "twitter" ? twitterAnalyticsIcons[key as keyof typeof twitterAnalyticsIcons] : linkedinAnalyticsIcons[key as keyof typeof linkedinAnalyticsIcons];
-                      return (
-                        <div key={key} className="flex items-center space-x-1">
-                          <IconComponent className="h-4 w-4" />
-                          <span className='text-gray-600'>{value}</span>
+                <a href={`https://x.com/${socialAccounts?.twitter?.username}/status/${post.postId}`} key={post._id} target='_blank' className="block hover:cursor-pointer">
+                  <div key={post._id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow duration-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <div className={`p-1.5 rounded ${getPlatformColor(post.platform)}`}>
+                          {getPlatformIcon(post.platform)}
                         </div>
-                      );
-                    })}
+                        <span className="text-sm font-medium text-gray-700 capitalize">{post.platform}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">{new Date(post.publishedAt).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
+                    
+                    <div className="flex items-center space-x-7 text-sm text-gray-600">
+                      {Object.entries(selected === "twitter" ? post.analytics.twitter : post.analytics.linkedin).map(([key, value]) => {
+                        const IconComponent = selected === "twitter" ? twitterAnalyticsIcons[key as keyof typeof twitterAnalyticsIcons] : linkedinAnalyticsIcons[key as keyof typeof linkedinAnalyticsIcons];
+                        return (
+                          <div key={key} className="flex items-center space-x-1">
+                            <IconComponent className="h-4 w-4" />
+                            <span className='text-gray-600'>{value}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                </a>
+                ))}
             </>
           )}
         </div>
