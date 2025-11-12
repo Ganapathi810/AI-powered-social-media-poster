@@ -85,7 +85,7 @@ router.get('/twitter/callback',
 // LinkedIn OAuth routes
 router.get('/linkedin', async (req, res) => {
   const userId = req.query.userId 
-  const scope = "openid profile email w_member_social r_member_social"
+  const scope = "openid profile email w_member_social"
   const state = Math.random().toString(36).substring(2) + Date.now();
 
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(
