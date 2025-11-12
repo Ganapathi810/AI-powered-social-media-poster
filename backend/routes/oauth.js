@@ -85,7 +85,7 @@ router.get('/twitter/callback',
 // LinkedIn OAuth routes
 router.get('/linkedin', async (req, res) => {
   const userId = req.query.userId 
-  const scope = "openid profile email w_member_social r_member_social r_ads_reporting"
+  const scope = "openid profile email w_member_social r_member_social"
   const state = Math.random().toString(36).substring(2) + Date.now();
 
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(
@@ -121,20 +121,34 @@ router.get('/linkedin/callback',
     );
 
     const accessToken = tokenRes.data.access_token;
+    const refreshToken = tokenRes.data.refresh_token
     const expiresIn = tokenRes.data.expires_in
 
     const user = await LinkedinOAuth.findOne({
       state
     })
+
+    const response = await axios.get(
+        "https://api.linkedin.com/v2/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+    console.log("response from user info endpoint: ",response.data)
+
     await User.updateOne(
       { _id: user.userId },
       { $set: { 
           "socialAccounts.linkedin.accessToken": accessToken, 
+          "socialAccounts.linkedin.refreshToken": refreshToken, 
           "socialAccounts.linkedin.connected": true,
-          "socialAccounts.linkedin.expiresIn": expiresIn
+          "socialAccounts.linkedin.expiresIn": expiresIn,
+          "socialAccounts.linkedin.username": response.data.name
         } 
       }
     );
+
 
     return res.redirect(`${process.env.FRONTEND_URL}/oauth-success?platform=linkedin`);
   } catch (err) {

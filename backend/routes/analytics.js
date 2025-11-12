@@ -99,125 +99,20 @@ router.get("/twitter", async (req, res) => {
   }
 });
 
-router.get("/linkedin/:postId", async (req, res) => {
-  try {
-    
-    return
-
-    
-    const { postId } = req.params;
-
-
-    const user = await User.findById(req.userId);
-
-    if(!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
-    }
-    
-    const accessToken = user.socialAccounts.linkedin.accessToken;   
-
-    if (!accessToken) {
-      return res.status(400).json({ success: false, message: 'LinkedIn account not connected' });
-    }
-
-    const postResponse = await axios.get(
-      `https://api.linkedin.com/rest/posts/${postId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "LinkedIn-Version": "202510",
-        },
-      }
-    );
-
-    console.log("Post Response:", postResponse.data);
-
-    // 2️⃣ Fetch analytics separately
-    const statsResponse = await axios.get(
-      `https://api.linkedin.com/rest/statistics`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "LinkedIn-Version": "202510",
-        },
-        params: {
-          q: "entity",
-          entity: postId, // e.g., urn:li:share:123456789
-        },
-      }
-    );
-    console.log("Stats Response:", statsResponse.data);
-
-    const post = postResponse.data;
-    const stats = statsResponse.data.elements?.[0]?.totalShareStatistics || {};
-
-    const analytics = {
-      postId,
-      impressions: stats.impressionCount || 0,
-      likes: stats.likeCount || 0,
-      comments: stats.commentCount || 0,
-      shares: stats.shareCount || 0,
-      clicks: stats.clickCount || 0,
-      createdAt: post.createdAt || null,
-    };
-
-    res.json({ success: true, analytics });
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch LinkedIn analytics" });
-  }
-});
-
 router.get("/linkedin", async (req, res) => {
-  try {
 
-    return;
-    const postIds = ["urn:li:share:72384823849234", "urn:li:share:72384823923948"];
+  /* require business email to access the LinkedIn API Endpoints for post analytics,
+    So for now returning default analytics 
+  */
 
-    const analyticsList = [];
+  const totals = { impressions: 0, likes: 0, comments: 0, clicks: 0, reposts: 0 }
 
-    for (const postId of postIds) {
-      const response = await axios.get(
-        `https://api.linkedin.com/rest/posts/${postId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.LINKEDIN_ACCESS_TOKEN}`,
-            "LinkedIn-Version": "202404",
-          },
-          params: {
-            projection: "(statistics~(viewsCount,likesCount,commentsCount,sharesCount,clickCount))",
-          },
-        }
-      );
+  res.status(200).json({
+    success: true,
+    totals
+  })
 
-      const stats = response.data["statistics~"];
-      analyticsList.push({
-        postId,
-        impressions: stats.viewsCount,
-        likes: stats.likesCount,
-        comments: stats.commentsCount,
-        shares: stats.sharesCount,
-        clicks: stats.clickCount,
-      });
-    }
-
-    // Combine totals
-    const totals = analyticsList.reduce(
-      (acc, curr) => ({
-        impressions: acc.impressions + curr.impressions,
-        likes: acc.likes + curr.likes,
-        comments: acc.comments + curr.comments,
-        shares: acc.shares + curr.shares,
-        clicks: acc.clicks + curr.clicks,
-      }),
-      { impressions: 0, likes: 0, comments: 0, shares: 0, clicks: 0 }
-    );
-
-    res.json({ success: true, totals, posts: analyticsList });
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ success: false, message: "Failed to fetch LinkedIn analytics" });
-  }
 });
+
 
 module.exports = router;
