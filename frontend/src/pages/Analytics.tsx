@@ -41,6 +41,25 @@ type Post = {
   };
 };
 
+type SocialAcccounts = {
+  twitter?: {
+    connected: boolean;
+    id?: string | null | undefined;
+    username?: string | null | undefined;
+    accessToken?: string | null | undefined;
+    refreshToken?: string | null | undefined;
+    expiresAt?: number | null | undefined;
+  },
+  linkedin?: {
+    connected: boolean;
+    id?: string | null | undefined;
+    username?: string | null | undefined;
+    accessToken?: string | null | undefined;
+    refreshToken?: string | null | undefined;
+    expiresIn?: number | null | undefined;
+  }
+}
+
 
 export const Analytics: React.FC = () => {
   const [selected,setSelected] = useState('twitter')
@@ -49,7 +68,7 @@ export const Analytics: React.FC = () => {
   const [loadingTwitterAnalytics,setLoadingTwitterAnalytics] = useState(false)
   const [loadingLinkedinAnalytics,setLoadingLinkedinAnalytics] = useState(false)
   const [loadingPosts,setLoadingPosts] = useState(false)
-  const [socialAccounts,setSocialAccounts] = useState([]) 
+  const [socialAccounts,setSocialAccounts] = useState<SocialAcccounts>({}) 
   const [totalTwitterAnalytics,setTotalTwitterAnalytics] = useState({ 
     impressions: 0, 
     likes: 0, 
