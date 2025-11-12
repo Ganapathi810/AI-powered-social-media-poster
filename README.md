@@ -1,5 +1,12 @@
+<h1>
+  <img src="./frontend/public/favicon.jpeg" alt="Tech Vibe Logo" width="67" style="margin-right: 10px;">
+  Social AI
+</h1>
 
-**Social AI** is an AI-powered social media management platform that allows users to effortlessly manage and publish content across their social accounts — such as **LinkedIn** and **Twitter (X)** — without leaving the app. It integrates AI-generated post creation, secure account connections, and performance analytics into a single, seamless dashboard.
+It is an AI-powered social media management platform that allows users to effortlessly manage and publish content across their social accounts such as **LinkedIn** and **Twitter (X)** without leaving the app. It integrates AI-generated post creation, secure account connections, and performance analytics into a single, seamless dashboard.
+
+&#x20;
+ 
 
 ---
 
